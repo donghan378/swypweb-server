@@ -51,6 +51,11 @@ public class SecurityConfig {
                                 "/**"
                         ).permitAll()
 
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/v1/terms/**"
+                        ).permitAll()
+
                         .anyRequest().authenticated()
                 )
 
