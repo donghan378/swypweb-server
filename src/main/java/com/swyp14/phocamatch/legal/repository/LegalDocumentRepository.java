@@ -1,0 +1,14 @@
+package com.swyp14.phocamatch.legal.repository;
+
+import com.swyp14.phocamatch.legal.domain.LegalDocument;
+import com.swyp14.phocamatch.legal.domain.LegalDocumentType;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.Optional;
+
+public interface LegalDocumentRepository extends JpaRepository<LegalDocument,Long> {
+
+    Optional<LegalDocument> findByDocumentType(
+            LegalDocumentType documentType
+    );
+}
