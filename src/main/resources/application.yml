@@ -1,0 +1,42 @@
+spring:
+  application:
+    name: PhocaMatch
+
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password : ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            scope:
+              - openid
+              - email
+
+app:
+  jwt:
+    issuer: phocamatch
+    secret: ${JWT_SECRET}
+    access-token-expiration-seconds: 3600
+    signup-token-expiration-seconds: 600
+
+  frontend:
+    login-success-url: http://localhost:5173/oauth/callback
+    login-failure-rul: http://localhost:5173/login
