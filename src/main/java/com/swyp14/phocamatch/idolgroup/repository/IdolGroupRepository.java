@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface IdolGroupRepository extends JpaRepository<IdolGroup, Long> {
@@ -52,6 +53,10 @@ public interface IdolGroupRepository extends JpaRepository<IdolGroup, Long> {
     List<IdolGroup> findByIdGreaterThanOrderByIdAsc(
             Long cursor,
             Pageable pageable
+    );
+
+    List<IdolGroup> findAllByIdIn(
+            Collection<Long> groupIds
     );
 
 }

@@ -1,9 +1,14 @@
 package com.swyp14.phocamatch.favoritegroup.controller;
 
+import com.swyp14.phocamatch.favoritegroup.dto.FavoriteGroupBatchAddRequest;
+import com.swyp14.phocamatch.favoritegroup.dto.FavoriteGroupBatchAddResponse;
 import com.swyp14.phocamatch.favoritegroup.dto.FavoriteGroupListResponse;
 import com.swyp14.phocamatch.favoritegroup.dto.NonFavoriteGroupListResponse;
+import com.swyp14.phocamatch.favoritegroup.exception.InvalidGroupIdsException;
 import com.swyp14.phocamatch.favoritegroup.service.FavoriteGroupService;
+import com.swyp14.phocamatch.global.error.ErrorResponse;
 import com.swyp14.phocamatch.global.response.ApiResponse;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Positive;
@@ -13,10 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/users/me")
@@ -111,6 +113,44 @@ public class FavoriteGroupController {
                         )
                 );
     }
+
+    @PostMapping("/interest-groups")
+    public ResponseEntity<?>
+    addMyFavoriteGroups(
+            @AuthenticationPrincipal Jwt jwt,
+
+            @Valid
+            @RequestBody
+            FavoriteGroupBatchAddRequest request
+    ) {
+        try{
+            Long userId =
+                    parseUserId(jwt);
+
+            FavoriteGroupBatchAddResponse response =
+                    favoriteGroupService
+                            .addMyFavoriteGroups(
+                                    userId,
+                                    request.groupIds()
+                            );
+
+            return ResponseEntity
+                    .status(HttpStatus.OK)
+                    .body(
+                            ApiResponse.success(
+                                    200,
+                                    "관심 그룹 추가 완료",
+                                    response
+                            )
+                    );
+        }catch(InvalidGroupIdsException e){
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(ErrorResponse.of("400", e.getMessage()));
+        }
+
+    }
+
 
     private Long parseUserId(Jwt jwt) {
         try {

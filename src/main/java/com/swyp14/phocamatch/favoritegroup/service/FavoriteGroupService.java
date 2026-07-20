@@ -1,19 +1,22 @@
 package com.swyp14.phocamatch.favoritegroup.service;
 
 import com.swyp14.phocamatch.favoritegroup.domain.FavoriteGroup;
-import com.swyp14.phocamatch.favoritegroup.dto.FavoriteGroupItemResponse;
-import com.swyp14.phocamatch.favoritegroup.dto.FavoriteGroupListResponse;
-import com.swyp14.phocamatch.favoritegroup.dto.NonFavoriteGroupItemResponse;
-import com.swyp14.phocamatch.favoritegroup.dto.NonFavoriteGroupListResponse;
+import com.swyp14.phocamatch.favoritegroup.dto.*;
+import com.swyp14.phocamatch.favoritegroup.exception.InvalidGroupIdsException;
 import com.swyp14.phocamatch.favoritegroup.repository.FavoriteGroupRepository;
 import com.swyp14.phocamatch.idolgroup.domain.IdolGroup;
 import com.swyp14.phocamatch.idolgroup.repository.IdolGroupRepository;
+import com.swyp14.phocamatch.user.domain.User;
+import com.swyp14.phocamatch.user.exception.UserNotFoundException;
+import com.swyp14.phocamatch.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -21,6 +24,7 @@ public class FavoriteGroupService {
 
     private final FavoriteGroupRepository favoriteGroupRepository;
     private final IdolGroupRepository idolGroupRepository;
+    private final UserRepository userRepository;
 
     @Transactional(readOnly = true)
     public FavoriteGroupListResponse getMyFavoriteGroups(
@@ -129,4 +133,99 @@ public class FavoriteGroupService {
                 favoriteGroup.getCreatedAt()
         );
     }
+
+    @Transactional
+    public FavoriteGroupBatchAddResponse
+    addMyFavoriteGroups(
+            Long userId,
+            List<Long> requestedGroupIds
+    ) {
+        List<Long> groupIds =
+                removeDuplicates(requestedGroupIds);
+
+        User user = userRepository
+                .findById(userId)
+                .orElseThrow(UserNotFoundException::new);
+
+        List<IdolGroup> foundGroups =
+                idolGroupRepository.findAllById(groupIds);
+
+        validateAllGroupsExist(
+                groupIds,
+                foundGroups
+        );
+
+        Set<Long> existingFavoriteGroupIds =
+                new HashSet<>(
+                        favoriteGroupRepository
+                                .findFavoriteGroupIds(
+                                        userId,
+                                        groupIds
+                                )
+                );
+
+        Map<Long, IdolGroup> groupMap =
+                foundGroups.stream()
+                        .collect(
+                                Collectors.toMap(
+                                        IdolGroup::getId,
+                                        Function.identity()
+                                )
+                        );
+
+        List<FavoriteGroup> newFavoriteGroups =
+                groupIds.stream()
+                        .filter(groupId ->
+                                !existingFavoriteGroupIds
+                                        .contains(groupId)
+                        )
+                        .map(groupMap::get)
+                        .map(group ->
+                                FavoriteGroup.create(
+                                        user,
+                                        group
+                                )
+                        )
+                        .toList();
+
+        favoriteGroupRepository.saveAll(
+                newFavoriteGroups
+        );
+
+        return new FavoriteGroupBatchAddResponse(
+                groupIds
+        );
+    }
+
+    private List<Long> removeDuplicates(
+            List<Long> groupIds
+    ) {
+        return List.copyOf(
+                new LinkedHashSet<>(groupIds)
+        );
+    }
+
+    private void validateAllGroupsExist(
+            List<Long> requestedGroupIds,
+            List<IdolGroup> foundGroups
+    ) {
+        Set<Long> foundGroupIds =
+                foundGroups.stream()
+                        .map(IdolGroup::getId)
+                        .collect(Collectors.toSet());
+
+        List<Long> invalidGroupIds =
+                requestedGroupIds.stream()
+                        .filter(groupId ->
+                                !foundGroupIds.contains(groupId)
+                        )
+                        .toList();
+
+        if (!invalidGroupIds.isEmpty()) {
+            throw new InvalidGroupIdsException(
+                    invalidGroupIds
+            );
+        }
+    }
+
 }
