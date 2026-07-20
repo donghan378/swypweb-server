@@ -63,6 +63,7 @@ public class User {
         user.providerUserId = providerUserId;
         user.email = email;
         user.nickname = nickname;
+        user.profileImageUrl = null;
 
         return user;
     }

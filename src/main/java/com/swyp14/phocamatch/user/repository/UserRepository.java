@@ -14,4 +14,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
     );
 
     boolean existsByNickname(String nickname);
+
+    // 현재 사용자 닉네임 제외하고
+    boolean existsByNicknameAndIdNot(
+            String nickname,
+            Long id
+    );
 }
