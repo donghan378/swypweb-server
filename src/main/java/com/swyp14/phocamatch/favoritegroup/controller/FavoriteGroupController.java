@@ -1,13 +1,11 @@
 package com.swyp14.phocamatch.favoritegroup.controller;
 
-import com.swyp14.phocamatch.favoritegroup.dto.FavoriteGroupBatchAddRequest;
-import com.swyp14.phocamatch.favoritegroup.dto.FavoriteGroupBatchAddResponse;
-import com.swyp14.phocamatch.favoritegroup.dto.FavoriteGroupListResponse;
-import com.swyp14.phocamatch.favoritegroup.dto.NonFavoriteGroupListResponse;
+import com.swyp14.phocamatch.favoritegroup.dto.*;
 import com.swyp14.phocamatch.favoritegroup.exception.InvalidGroupIdsException;
 import com.swyp14.phocamatch.favoritegroup.service.FavoriteGroupService;
 import com.swyp14.phocamatch.global.error.ErrorResponse;
 import com.swyp14.phocamatch.global.response.ApiResponse;
+import com.swyp14.phocamatch.idolgroup.exception.IdolGroupNotFoundException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -147,6 +145,42 @@ public class FavoriteGroupController {
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
                     .body(ErrorResponse.of("400", e.getMessage()));
+        }
+
+    }
+
+    @DeleteMapping("/interest-groups/{groupId}")
+    public ResponseEntity<?>
+    deleteMyFavoriteGroup(
+            @AuthenticationPrincipal Jwt jwt,
+
+            @PathVariable
+            @Positive(message = "groupId는 양수여야 합니다.")
+            Long groupId
+    ) {
+        try{
+            Long userId = parseUserId(jwt);
+
+            FavoriteGroupDeleteResponse response =
+                    favoriteGroupService
+                            .deleteMyFavoriteGroup(
+                                    userId,
+                                    groupId
+                            );
+
+            return ResponseEntity
+                    .status(HttpStatus.OK)
+                    .body(
+                            ApiResponse.success(
+                                    200,
+                                    "관심 그룹 삭제 완료",
+                                    response
+                            )
+                    );
+        }catch(IdolGroupNotFoundException e){
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(ErrorResponse.of("RESOURCE_001",e.getMessage()));
         }
 
     }

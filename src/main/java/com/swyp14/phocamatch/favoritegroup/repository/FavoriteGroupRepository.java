@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 public interface FavoriteGroupRepository extends JpaRepository<FavoriteGroup, Long> {
 
@@ -59,6 +60,11 @@ public interface FavoriteGroupRepository extends JpaRepository<FavoriteGroup, Lo
             @Param("userId") Long userId,
             @Param("groupIds")
             Collection<Long> groupIds
+    );
+
+    Optional<FavoriteGroup> findByUser_IdAndGroup_Id(
+            Long userId,
+            Long groupId
     );
 
 }

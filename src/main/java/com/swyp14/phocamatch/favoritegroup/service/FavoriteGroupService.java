@@ -2,9 +2,11 @@ package com.swyp14.phocamatch.favoritegroup.service;
 
 import com.swyp14.phocamatch.favoritegroup.domain.FavoriteGroup;
 import com.swyp14.phocamatch.favoritegroup.dto.*;
+import com.swyp14.phocamatch.favoritegroup.exception.FavoriteGroupNotFoundException;
 import com.swyp14.phocamatch.favoritegroup.exception.InvalidGroupIdsException;
 import com.swyp14.phocamatch.favoritegroup.repository.FavoriteGroupRepository;
 import com.swyp14.phocamatch.idolgroup.domain.IdolGroup;
+import com.swyp14.phocamatch.idolgroup.exception.IdolGroupNotFoundException;
 import com.swyp14.phocamatch.idolgroup.repository.IdolGroupRepository;
 import com.swyp14.phocamatch.user.domain.User;
 import com.swyp14.phocamatch.user.exception.UserNotFoundException;
@@ -225,6 +227,37 @@ public class FavoriteGroupService {
             throw new InvalidGroupIdsException(
                     invalidGroupIds
             );
+        }
+    }
+
+    @Transactional
+    public FavoriteGroupDeleteResponse
+    deleteMyFavoriteGroup(
+            Long userId,
+            Long groupId
+    ) {
+        validateGroupExists(groupId);
+
+        FavoriteGroup favoriteGroup =
+                favoriteGroupRepository
+                        .findByUser_IdAndGroup_Id(
+                                userId,
+                                groupId
+                        )
+                        .orElseThrow(
+                                FavoriteGroupNotFoundException::new
+                        );
+
+        favoriteGroupRepository.delete(favoriteGroup);
+
+        return new FavoriteGroupDeleteResponse(
+                groupId
+        );
+    }
+
+    private void validateGroupExists(Long groupId) {
+        if (!idolGroupRepository.existsById(groupId)) {
+            throw new IdolGroupNotFoundException();
         }
     }
 
