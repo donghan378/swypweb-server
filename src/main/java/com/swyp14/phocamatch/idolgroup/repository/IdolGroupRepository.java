@@ -1,6 +1,7 @@
 package com.swyp14.phocamatch.idolgroup.repository;
 
 import com.swyp14.phocamatch.idolgroup.domain.IdolGroup;
+import com.swyp14.phocamatch.idolgroup.dto.IdolGroupQueryResult;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -43,4 +44,14 @@ public interface IdolGroupRepository extends JpaRepository<IdolGroup, Long> {
             @Param("cursor") Long cursor,
             Pageable pageable
     );
+
+    List<IdolGroup> findAllByOrderByIdAsc(
+            Pageable pageable
+    );
+
+    List<IdolGroup> findByIdGreaterThanOrderByIdAsc(
+            Long cursor,
+            Pageable pageable
+    );
+
 }
