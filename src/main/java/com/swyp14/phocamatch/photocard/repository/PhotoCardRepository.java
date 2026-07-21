@@ -39,4 +39,24 @@ public interface PhotoCardRepository extends JpaRepository<PhotoCard, Long> {
             @Param("versionId") Long versionId,
             @Param("userId") Long userId
     );
+
+    @Query("""
+            SELECT pc
+            FROM PhotoCard pc
+            WHERE pc.version.album.group.id = :groupId
+              AND pc.id IN :photoCardIds
+            """)
+    List<PhotoCard> findAllByGroupIdAndIdIn(
+            @Param("groupId") Long groupId,
+            @Param("photoCardIds") List<Long> photoCardIds
+    );
+
+    @Query("""
+            SELECT COUNT(pc.id)
+            FROM PhotoCard pc
+            WHERE pc.version.album.group.id = :groupId
+            """)
+    long countByGroupId(
+            @Param("groupId") Long groupId
+    );
 }
