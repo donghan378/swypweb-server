@@ -1,6 +1,8 @@
 package com.swyp14.phocamatch.album.controller;
 
+import com.swyp14.phocamatch.album.dto.AlbumVersionListResponse;
 import com.swyp14.phocamatch.album.dto.GroupAlbumListResponse;
+import com.swyp14.phocamatch.album.exception.AlbumNotFoundException;
 import com.swyp14.phocamatch.album.service.AlbumService;
 import com.swyp14.phocamatch.global.error.ErrorResponse;
 import com.swyp14.phocamatch.global.response.ApiResponse;
@@ -59,7 +61,42 @@ public class AlbumController {
                             ErrorResponse.of("RESOURCE_001",e.getMessage())
                     );
         }
+    }
 
+    @GetMapping("/albums/{albumId}/versions")
+    public ResponseEntity<?>
+    getAlbumVersions(
+            @AuthenticationPrincipal Jwt jwt,
+
+            @PathVariable
+            @Positive(message = "albumId는 양수여야 합니다.")
+            Long albumId
+    ) {
+        try{
+            Long userId = parseUserId(jwt);
+
+            AlbumVersionListResponse response =
+                    albumService.getAlbumVersions(
+                            userId,
+                            albumId
+                    );
+
+            return ResponseEntity
+                    .status(HttpStatus.OK)
+                    .body(
+                            ApiResponse.success(
+                                    200,
+                                    "앨범 버전 목록 조회 성공",
+                                    response
+                            )
+                    );
+        }catch(AlbumNotFoundException e){
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(
+                            ErrorResponse.of("RESOURCE_001",e.getMessage())
+                    );
+        }
     }
 
     private Long parseUserId(Jwt jwt) {
