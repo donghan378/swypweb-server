@@ -3,6 +3,7 @@ package com.swyp14.phocamatch.auth.service;
 import com.swyp14.phocamatch.auth.dto.TokenResponse;
 import com.swyp14.phocamatch.auth.token.TokenService;
 import com.swyp14.phocamatch.user.domain.User;
+import com.swyp14.phocamatch.user.exception.DuplicateNicknameException;
 import com.swyp14.phocamatch.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -49,9 +50,9 @@ public class AuthService {
 
         try{
             userRepository.saveAndFlush(user);
-        }catch (DataIntegrityViolationException exception){
+        }catch (DuplicateNicknameException exception){
             throw new IllegalArgumentException(
-                    "이미 사용 중인 닉네임이거나 가입된 계정입니다.",
+                    "이미 사용 중인 닉네임입니다.",
                     exception
             );
         }

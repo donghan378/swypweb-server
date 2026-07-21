@@ -3,7 +3,9 @@ package com.swyp14.phocamatch.auth.controller;
 import com.swyp14.phocamatch.auth.dto.SignupRequest;
 import com.swyp14.phocamatch.auth.dto.TokenResponse;
 import com.swyp14.phocamatch.auth.service.AuthService;
+import com.swyp14.phocamatch.global.error.ErrorResponse;
 import com.swyp14.phocamatch.global.response.ApiResponse;
+import com.swyp14.phocamatch.user.exception.DuplicateNicknameException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -21,22 +23,28 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/signup")
-    public ResponseEntity<ApiResponse<TokenResponse>> signup(
+    public ResponseEntity<?> signup(
             @Valid @RequestBody SignupRequest request
     ){
-        TokenResponse tokenResponse = authService.signup(
-                request.signupToken(),
-                request.nickname()
-        );
+        try{
+            TokenResponse tokenResponse = authService.signup(
+                    request.signupToken(),
+                    request.nickname()
+            );
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(
-                        ApiResponse.success(
-                                HttpStatus.CREATED.value(),
-                                "회원가입 성공",
-                                tokenResponse
-                        )
-                );
+            return ResponseEntity
+                    .status(HttpStatus.CREATED)
+                    .body(
+                            ApiResponse.success(
+                                    HttpStatus.CREATED.value(),
+                                    "회원가입 성공",
+                                    tokenResponse
+                            )
+                    );
+        }catch(DuplicateNicknameException exception){
+            return ResponseEntity
+                    .status(HttpStatus.CONFLICT)
+                    .body(ErrorResponse.of("RESOURCE_002", exception.getMessage()));
+        }
     }
 }
