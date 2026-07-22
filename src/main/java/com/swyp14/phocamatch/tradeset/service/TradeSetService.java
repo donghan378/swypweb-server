@@ -12,6 +12,7 @@ import com.swyp14.phocamatch.tradeset.domain.TradeType;
 import com.swyp14.phocamatch.tradeset.dto.*;
 import com.swyp14.phocamatch.tradeset.exception.DuplicateTradeSetCardException;
 import com.swyp14.phocamatch.tradeset.exception.InvalidTradeSetCardException;
+import com.swyp14.phocamatch.tradeset.exception.TradeSetNotFoundException;
 import com.swyp14.phocamatch.tradeset.repository.TradeSetItemRepository;
 import com.swyp14.phocamatch.tradeset.repository.TradeSetRepository;
 import com.swyp14.phocamatch.user.domain.User;
@@ -382,6 +383,63 @@ public class TradeSetService {
                         : wantRepresentative.versionName(),
 
                 tradeSet.getCreatedAt()
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public TradeSetDetailResponse getTradeSetDetail(
+            Long tradeSetId
+    ) {
+        TradeSet tradeSet =
+                tradeSetRepository
+                        .findDetailById(tradeSetId)
+                        .orElseThrow(
+                                TradeSetNotFoundException::new
+                        );
+
+        List<TradeSetCardQueryResult> cardResults =
+                tradeSetItemRepository
+                        .findCardsByTradeSetId(
+                                tradeSetId
+                        );
+
+        List<TradeSetCardResponse> haveCards =
+                cardResults.stream()
+                        .filter(result ->
+                                result.tradeType()
+                                        == TradeType.HAVE
+                        )
+                        .map(this::toCardResponse)
+                        .toList();
+
+        List<TradeSetCardResponse> wantCards =
+                cardResults.stream()
+                        .filter(result ->
+                                result.tradeType()
+                                        == TradeType.WANT
+                        )
+                        .map(this::toCardResponse)
+                        .toList();
+
+        return new TradeSetDetailResponse(
+                tradeSet.getId(),
+                tradeSet.getGroup().getId(),
+                tradeSet.getGroup().getName(),
+                tradeSet.getCreatedAt(),
+                haveCards,
+                wantCards
+        );
+    }
+
+    private TradeSetCardResponse toCardResponse(
+            TradeSetCardQueryResult result
+    ) {
+        return new TradeSetCardResponse(
+                result.photoCardId(),
+                result.albumName(),
+                result.versionName(),
+                result.photoCardName(),
+                result.imageUrl()
         );
     }
 }

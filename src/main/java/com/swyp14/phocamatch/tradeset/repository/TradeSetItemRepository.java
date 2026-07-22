@@ -1,6 +1,7 @@
 package com.swyp14.phocamatch.tradeset.repository;
 
 import com.swyp14.phocamatch.tradeset.domain.TradeSetItem;
+import com.swyp14.phocamatch.tradeset.dto.TradeSetCardQueryResult;
 import com.swyp14.phocamatch.tradeset.dto.TradeSetRepresentativeQueryResult;
 import com.swyp14.phocamatch.tradeset.dto.TradeSetTypeCountQueryResult;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -46,5 +47,24 @@ public interface TradeSetItemRepository extends JpaRepository<TradeSetItem,Long>
     List<TradeSetRepresentativeQueryResult>
     findRepresentativeCandidates(
             @Param("tradeSetIds") List<Long> tradeSetIds
+    );
+
+    @Query("""
+            SELECT new com.swyp14.phocamatch.tradeset.dto.TradeSetCardQueryResult(
+                item.card.id,
+                item.card.version.album.name,
+                item.card.version.name,
+                item.card.name,
+                item.card.imageUrl,
+                item.tradeType
+            )
+            FROM TradeSetItem item
+            WHERE item.tradeSet.id = :tradeSetId
+            ORDER BY
+                item.tradeType ASC,
+                item.id ASC
+            """)
+    List<TradeSetCardQueryResult> findCardsByTradeSetId(
+            @Param("tradeSetId") Long tradeSetId
     );
 }

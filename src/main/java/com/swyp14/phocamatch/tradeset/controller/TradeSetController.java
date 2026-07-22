@@ -5,8 +5,10 @@ import com.swyp14.phocamatch.global.response.ApiResponse;
 import com.swyp14.phocamatch.tradeset.dto.MyTradeSetListResponse;
 import com.swyp14.phocamatch.tradeset.dto.TradeSetCreateRequest;
 import com.swyp14.phocamatch.tradeset.dto.TradeSetCreateResponse;
+import com.swyp14.phocamatch.tradeset.dto.TradeSetDetailResponse;
 import com.swyp14.phocamatch.tradeset.exception.DuplicateTradeSetCardException;
 import com.swyp14.phocamatch.tradeset.exception.InvalidTradeSetCardException;
+import com.swyp14.phocamatch.tradeset.exception.TradeSetNotFoundException;
 import com.swyp14.phocamatch.tradeset.service.TradeSetService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
@@ -104,6 +106,36 @@ public class TradeSetController {
                                 response
                         )
                 );
+    }
+
+    @GetMapping("/{tradeSetId}")
+    public ResponseEntity<?>
+    getTradeSetDetail(
+            @PathVariable
+            @Positive(message = "tradeSetId는 양수여야 합니다.")
+            Long tradeSetId
+    ) {
+        try{
+            TradeSetDetailResponse response =
+                    tradeSetService
+                            .getTradeSetDetail(
+                                    tradeSetId
+                            );
+
+            return ResponseEntity
+                    .status(HttpStatus.OK)
+                    .body(
+                            ApiResponse.success(
+                                    200,
+                                    "교환 세트 상세 조회 완료",
+                                    response
+                            )
+                    );
+        }catch(TradeSetNotFoundException e) {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(ErrorResponse.of("404", e.getMessage()));
+        }
     }
 
 }

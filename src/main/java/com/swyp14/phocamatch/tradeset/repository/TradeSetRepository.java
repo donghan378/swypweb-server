@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface TradeSetRepository extends JpaRepository<TradeSet,Long> {
 
@@ -16,5 +17,15 @@ public interface TradeSetRepository extends JpaRepository<TradeSet,Long> {
             Long userId,
             Long groupId,
             TradeSetStatus status
+    );
+
+    @Query("""
+            SELECT ts
+            FROM TradeSet ts
+            JOIN FETCH ts.group
+            WHERE ts.id = :tradeSetId
+            """)
+    Optional<TradeSet> findDetailById(
+            @Param("tradeSetId") Long tradeSetId
     );
 }
