@@ -1,6 +1,7 @@
 package com.swyp14.phocamatch.tradeset.repository;
 
 import com.swyp14.phocamatch.tradeset.domain.TradeSetItem;
+import com.swyp14.phocamatch.tradeset.dto.MatchedCardProjection;
 import com.swyp14.phocamatch.tradeset.dto.TradeSetCardQueryResult;
 import com.swyp14.phocamatch.tradeset.dto.TradeSetRepresentativeQueryResult;
 import com.swyp14.phocamatch.tradeset.dto.TradeSetTypeCountQueryResult;
@@ -70,5 +71,55 @@ public interface TradeSetItemRepository extends JpaRepository<TradeSetItem,Long>
 
     List<TradeSetItem> findAllByTradeSet_Id(
             Long tradeSetId
+    );
+
+    @Query(
+            value = """
+                    SELECT
+                        candidate_item.trade_set_id AS tradeSetId,
+                        candidate_item.trade_type AS tradeType,
+                        pc.card_id AS photoCardId,
+                        pc.card_image_url AS imageUrl
+                    FROM trade_set_items candidate_item
+                    
+                    JOIN photo_cards pc
+                      ON pc.card_id = candidate_item.card_id
+                    
+                    WHERE candidate_item.trade_set_id IN (:candidateIds)
+                      AND (
+                            (
+                                candidate_item.trade_type = 'HAVE'
+                                AND EXISTS (
+                                    SELECT 1
+                                    FROM trade_set_items my_item
+                                    WHERE my_item.trade_set_id = :myTradeSetId
+                                      AND my_item.trade_type = 'WANT'
+                                      AND my_item.card_id
+                                        = candidate_item.card_id
+                                )
+                            )
+                            OR
+                            (
+                                candidate_item.trade_type = 'WANT'
+                                AND EXISTS (
+                                    SELECT 1
+                                    FROM trade_set_items my_item
+                                    WHERE my_item.trade_set_id = :myTradeSetId
+                                      AND my_item.trade_type = 'HAVE'
+                                      AND my_item.card_id
+                                        = candidate_item.card_id
+                                )
+                            )
+                      )
+                    ORDER BY
+                        candidate_item.trade_set_id DESC,
+                        candidate_item.trade_type ASC,
+                        candidate_item.trade_set_item_id ASC
+                    """,
+            nativeQuery = true
+    )
+    List<MatchedCardProjection> findMatchedCards(
+            @Param("myTradeSetId") Long myTradeSetId,
+            @Param("candidateIds") List<Long> candidateIds
     );
 }
