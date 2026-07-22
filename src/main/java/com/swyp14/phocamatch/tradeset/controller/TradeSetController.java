@@ -2,6 +2,7 @@ package com.swyp14.phocamatch.tradeset.controller;
 
 import com.swyp14.phocamatch.global.error.ErrorResponse;
 import com.swyp14.phocamatch.global.response.ApiResponse;
+import com.swyp14.phocamatch.tradeset.dto.MyTradeSetListResponse;
 import com.swyp14.phocamatch.tradeset.dto.TradeSetCreateRequest;
 import com.swyp14.phocamatch.tradeset.dto.TradeSetCreateResponse;
 import com.swyp14.phocamatch.tradeset.exception.DuplicateTradeSetCardException;
@@ -75,4 +76,34 @@ public class TradeSetController {
         }
 
     }
+
+    @GetMapping
+    public ResponseEntity<?>
+    getMyTradeSets(
+            @AuthenticationPrincipal Jwt jwt,
+
+            @RequestParam
+            @Positive(message = "groupId는 양수여야 합니다.")
+            Long groupId
+    ) {
+        Long userId =
+                Long.valueOf(jwt.getSubject());
+
+        MyTradeSetListResponse response =
+                tradeSetService.getMyTradeSets(
+                        userId,
+                        groupId
+                );
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(
+                        ApiResponse.success(
+                                200,
+                                "교환 세트 목록 조회 성공",
+                                response
+                        )
+                );
+    }
+
 }

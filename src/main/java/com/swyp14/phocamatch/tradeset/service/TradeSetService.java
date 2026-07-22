@@ -7,8 +7,9 @@ import com.swyp14.phocamatch.photocard.domain.PhotoCard;
 import com.swyp14.phocamatch.photocard.repository.PhotoCardRepository;
 import com.swyp14.phocamatch.tradeset.domain.TradeSet;
 import com.swyp14.phocamatch.tradeset.domain.TradeSetItem;
+import com.swyp14.phocamatch.tradeset.domain.TradeSetStatus;
 import com.swyp14.phocamatch.tradeset.domain.TradeType;
-import com.swyp14.phocamatch.tradeset.dto.TradeSetCreateResponse;
+import com.swyp14.phocamatch.tradeset.dto.*;
 import com.swyp14.phocamatch.tradeset.exception.DuplicateTradeSetCardException;
 import com.swyp14.phocamatch.tradeset.exception.InvalidTradeSetCardException;
 import com.swyp14.phocamatch.tradeset.repository.TradeSetItemRepository;
@@ -189,5 +190,198 @@ public class TradeSetService {
                     invalidCardIds
             );
         }
+    }
+
+    @Transactional(readOnly = true)
+    public MyTradeSetListResponse getMyTradeSets(
+            Long userId,
+            Long groupId
+    ) {
+        validateGroupExists(groupId);
+
+        List<TradeSet> tradeSets =
+                tradeSetRepository
+                        .findAllByUser_IdAndGroup_IdAndStatusOrderByCreatedAtDescIdDesc(
+                                userId,
+                                groupId,
+                                TradeSetStatus.ACTIVE
+                        );
+
+        if (tradeSets.isEmpty()) {
+            return new MyTradeSetListResponse(
+                    List.of()
+            );
+        }
+
+        List<Long> tradeSetIds =
+                tradeSets.stream()
+                        .map(TradeSet::getId)
+                        .toList();
+
+        List<TradeSetTypeCountQueryResult> countResults =
+                tradeSetItemRepository.findTypeCounts(
+                        tradeSetIds
+                );
+
+        List<TradeSetRepresentativeQueryResult>
+                representativeResults =
+                tradeSetItemRepository
+                        .findRepresentativeCandidates(
+                                tradeSetIds
+                        );
+
+        Map<TradeSetTypeKey, Long> countMap =
+                createCountMap(countResults);
+
+        Map<
+                TradeSetTypeKey,
+                TradeSetRepresentativeQueryResult
+                > representativeMap =
+                createRepresentativeMap(
+                        representativeResults
+                );
+
+        List<MyTradeSetItemResponse> responses =
+                tradeSets.stream()
+                        .map(tradeSet ->
+                                createResponse(
+                                        tradeSet,
+                                        countMap,
+                                        representativeMap
+                                )
+                        )
+                        .toList();
+
+        return new MyTradeSetListResponse(
+                responses
+        );
+    }
+
+    private void validateGroupExists(Long groupId) {
+        if (!idolGroupRepository.existsById(groupId)) {
+            throw new IdolGroupNotFoundException();
+        }
+    }
+
+    private Map<TradeSetTypeKey, Long>
+    createCountMap(
+            List<TradeSetTypeCountQueryResult> results
+    ) {
+        Map<TradeSetTypeKey, Long> countMap =
+                new LinkedHashMap<>();
+
+        for (TradeSetTypeCountQueryResult result : results) {
+            TradeSetTypeKey key =
+                    new TradeSetTypeKey(
+                            result.tradeSetId(),
+                            result.tradeType()
+                    );
+
+            countMap.put(
+                    key,
+                    result.itemCount()
+            );
+        }
+
+        return countMap;
+    }
+
+    private Map<
+            TradeSetTypeKey,
+            TradeSetRepresentativeQueryResult
+            >
+    createRepresentativeMap(
+            List<TradeSetRepresentativeQueryResult> candidates
+    ) {
+        Map<
+                TradeSetTypeKey,
+                TradeSetRepresentativeQueryResult
+                > representativeMap =
+                new LinkedHashMap<>();
+
+        for (
+                TradeSetRepresentativeQueryResult candidate
+                : candidates
+        ) {
+            TradeSetTypeKey key =
+                    new TradeSetTypeKey(
+                            candidate.tradeSetId(),
+                            candidate.tradeType()
+                    );
+
+            /*
+             * item.id 오름차순으로 조회했으므로
+             * 유형별 최초 항목만 대표 카드로 선택
+             */
+            representativeMap.putIfAbsent(
+                    key,
+                    candidate
+            );
+        }
+
+        return representativeMap;
+    }
+
+    private MyTradeSetItemResponse createResponse(
+            TradeSet tradeSet,
+            Map<TradeSetTypeKey, Long> countMap,
+            Map<
+                    TradeSetTypeKey,
+                    TradeSetRepresentativeQueryResult
+                    > representativeMap
+    ) {
+        Long tradeSetId = tradeSet.getId();
+
+        TradeSetTypeKey haveKey =
+                new TradeSetTypeKey(
+                        tradeSetId,
+                        TradeType.HAVE
+                );
+
+        TradeSetTypeKey wantKey =
+                new TradeSetTypeKey(
+                        tradeSetId,
+                        TradeType.WANT
+                );
+
+        TradeSetRepresentativeQueryResult haveRepresentative =
+                representativeMap.get(haveKey);
+
+        TradeSetRepresentativeQueryResult wantRepresentative =
+                representativeMap.get(wantKey);
+
+        return new MyTradeSetItemResponse(
+                tradeSetId,
+                tradeSet.getGroup().getId(),
+
+                countMap.getOrDefault(haveKey, 0L),
+                countMap.getOrDefault(wantKey, 0L),
+
+                haveRepresentative == null
+                        ? null
+                        : haveRepresentative.imageUrl(),
+
+                haveRepresentative == null
+                        ? null
+                        : haveRepresentative.albumName(),
+
+                haveRepresentative == null
+                        ? null
+                        : haveRepresentative.versionName(),
+
+                wantRepresentative == null
+                        ? null
+                        : wantRepresentative.imageUrl(),
+
+                wantRepresentative == null
+                        ? null
+                        : wantRepresentative.albumName(),
+
+                wantRepresentative == null
+                        ? null
+                        : wantRepresentative.versionName(),
+
+                tradeSet.getCreatedAt()
+        );
     }
 }
