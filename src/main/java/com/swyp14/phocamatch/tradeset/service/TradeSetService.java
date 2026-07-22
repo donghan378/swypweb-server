@@ -12,6 +12,7 @@ import com.swyp14.phocamatch.tradeset.domain.TradeType;
 import com.swyp14.phocamatch.tradeset.dto.*;
 import com.swyp14.phocamatch.tradeset.exception.DuplicateTradeSetCardException;
 import com.swyp14.phocamatch.tradeset.exception.InvalidTradeSetCardException;
+import com.swyp14.phocamatch.tradeset.exception.TradeSetAccessDeniedException;
 import com.swyp14.phocamatch.tradeset.exception.TradeSetNotFoundException;
 import com.swyp14.phocamatch.tradeset.repository.TradeSetItemRepository;
 import com.swyp14.phocamatch.tradeset.repository.TradeSetRepository;
@@ -441,5 +442,197 @@ public class TradeSetService {
                 result.photoCardName(),
                 result.imageUrl()
         );
+    }
+
+    @Transactional
+    public TradeSetUpdateResponse updateTradeSet(
+            Long userId,
+            Long tradeSetId,
+            List<Long> requestedHaveCardIds,
+            List<Long> requestedWantCardIds
+    ) {
+        TradeSet tradeSet = tradeSetRepository
+                .findById(tradeSetId)
+                .orElseThrow(TradeSetNotFoundException::new);
+
+        validateOwner(
+                tradeSet,
+                userId
+        );
+
+        List<Long> haveCardIds =
+                removeDuplicates(requestedHaveCardIds);
+
+        List<Long> wantCardIds =
+                removeDuplicates(requestedWantCardIds);
+
+        validateNoOverlap(
+                haveCardIds,
+                wantCardIds
+        );
+
+        List<Long> allCardIds =
+                mergeCardIds(
+                        haveCardIds,
+                        wantCardIds
+                );
+
+        Long groupId =
+                tradeSet.getGroup().getId();
+
+        List<PhotoCard> foundCards =
+                photoCardRepository
+                        .findAllByGroupIdAndIdIn(
+                                groupId,
+                                allCardIds
+                        );
+
+        validateAllCardsBelongToGroup(
+                allCardIds,
+                foundCards
+        );
+
+        Map<Long, PhotoCard> photoCardMap =
+                foundCards.stream()
+                        .collect(
+                                Collectors.toMap(
+                                        PhotoCard::getId,
+                                        Function.identity()
+                                )
+                        );
+
+        List<TradeSetItem> currentItems =
+                tradeSetItemRepository
+                        .findAllByTradeSet_Id(
+                                tradeSetId
+                        );
+
+        Map<TradeSetItemKey, TradeSetItem> currentItemMap =
+                currentItems.stream()
+                        .collect(
+                                Collectors.toMap(
+                                        item ->
+                                                new TradeSetItemKey(
+                                                        item.getCard().getId(),
+                                                        item.getTradeType()
+                                                ),
+                                        Function.identity()
+                                )
+                        );
+
+        Set<TradeSetItemKey> requestedKeys =
+                createRequestedKeys(
+                        haveCardIds,
+                        wantCardIds
+                );
+
+        List<TradeSetItem> itemsToDelete =
+                currentItems.stream()
+                        .filter(item ->
+                                !requestedKeys.contains(
+                                        new TradeSetItemKey(
+                                                item.getCard().getId(),
+                                                item.getTradeType()
+                                        )
+                                )
+                        )
+                        .toList();
+
+        List<TradeSetItem> itemsToAdd =
+                new ArrayList<>();
+
+        for (Long cardId : haveCardIds) {
+            TradeSetItemKey key =
+                    new TradeSetItemKey(
+                            cardId,
+                            TradeType.HAVE
+                    );
+
+            if (!currentItemMap.containsKey(key)) {
+                itemsToAdd.add(
+                        TradeSetItem.create(
+                                tradeSet,
+                                photoCardMap.get(cardId),
+                                TradeType.HAVE
+                        )
+                );
+            }
+        }
+
+        for (Long cardId : wantCardIds) {
+            TradeSetItemKey key =
+                    new TradeSetItemKey(
+                            cardId,
+                            TradeType.WANT
+                    );
+
+            if (!currentItemMap.containsKey(key)) {
+                itemsToAdd.add(
+                        TradeSetItem.create(
+                                tradeSet,
+                                photoCardMap.get(cardId),
+                                TradeType.WANT
+                        )
+                );
+            }
+        }
+
+        tradeSetItemRepository.deleteAllInBatch(
+                itemsToDelete
+        );
+
+        tradeSetItemRepository.saveAll(
+                itemsToAdd
+        );
+
+        return new TradeSetUpdateResponse(
+                tradeSet.getId(),
+                groupId,
+                haveCardIds.size(),
+                wantCardIds.size()
+        );
+    }
+
+    private void validateOwner(
+            TradeSet tradeSet,
+            Long userId
+    ) {
+        if (!tradeSet.getUser().getId().equals(userId)) {
+            throw new TradeSetAccessDeniedException();
+        }
+    }
+
+    private Set<TradeSetItemKey> createRequestedKeys(
+            List<Long> haveCardIds,
+            List<Long> wantCardIds
+    ) {
+        Set<TradeSetItemKey> keys =
+                new HashSet<>();
+
+        haveCardIds.forEach(cardId ->
+                keys.add(
+                        new TradeSetItemKey(
+                                cardId,
+                                TradeType.HAVE
+                        )
+                )
+        );
+
+        wantCardIds.forEach(cardId ->
+                keys.add(
+                        new TradeSetItemKey(
+                                cardId,
+                                TradeType.WANT
+                        )
+                )
+        );
+
+        return keys;
+    }
+
+    private record TradeSetItemKey(
+            Long cardId,
+            TradeType tradeType
+    ) {
     }
 }

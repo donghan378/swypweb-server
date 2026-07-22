@@ -28,4 +28,9 @@ public interface TradeSetRepository extends JpaRepository<TradeSet,Long> {
     Optional<TradeSet> findDetailById(
             @Param("tradeSetId") Long tradeSetId
     );
+
+    Optional<TradeSet> findByIdAndUser_Id(
+            Long tradeSetId,
+            Long userId
+    );
 }

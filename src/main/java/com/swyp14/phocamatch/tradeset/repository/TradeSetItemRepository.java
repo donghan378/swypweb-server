@@ -67,4 +67,8 @@ public interface TradeSetItemRepository extends JpaRepository<TradeSetItem,Long>
     List<TradeSetCardQueryResult> findCardsByTradeSetId(
             @Param("tradeSetId") Long tradeSetId
     );
+
+    List<TradeSetItem> findAllByTradeSet_Id(
+            Long tradeSetId
+    );
 }
