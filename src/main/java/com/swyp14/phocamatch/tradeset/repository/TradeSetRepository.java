@@ -2,11 +2,13 @@ package com.swyp14.phocamatch.tradeset.repository;
 
 import com.swyp14.phocamatch.tradeset.domain.TradeSet;
 import com.swyp14.phocamatch.tradeset.domain.TradeSetStatus;
+import com.swyp14.phocamatch.tradeset.dto.TradeSetMatchCandidateProjection;
 import com.swyp14.phocamatch.tradeset.dto.TradeSetTypeCountQueryResult;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -34,5 +36,128 @@ public interface TradeSetRepository extends JpaRepository<TradeSet,Long> {
     Optional<TradeSet> findByIdAndUser_Id(
             Long tradeSetId,
             Long userId
+    );
+
+    @Query(
+            value = """
+                    WITH my_have AS (
+                        SELECT tsi.card_id
+                        FROM trade_set_items tsi
+                        WHERE tsi.trade_set_id = :tradeSetId
+                          AND tsi.trade_type = 'HAVE'
+                    ),
+                    my_want AS (
+                        SELECT tsi.card_id
+                        FROM trade_set_items tsi
+                        WHERE tsi.trade_set_id = :tradeSetId
+                          AND tsi.trade_type = 'WANT'
+                    ),
+                    scored_matches AS (
+                        SELECT
+                            candidate.trade_set_id AS tradeSetId,
+                            candidate.user_id AS userId,
+                            u.nickname AS nickname,
+                            candidate.created_at AS createdAt,
+                            
+                            COUNT(
+                                DISTINCT CASE
+                                    WHEN candidate_item.trade_type = 'HAVE'
+                                     AND my_want.card_id IS NOT NULL
+                                    THEN candidate_item.card_id
+                                END
+                            )
+                            +
+                            COUNT(
+                                DISTINCT CASE
+                                    WHEN candidate_item.trade_type = 'WANT'
+                                     AND my_have.card_id IS NOT NULL
+                                    THEN candidate_item.card_id
+                                END
+                            ) AS matchScore,
+                            
+                            COUNT(
+                                DISTINCT CASE
+                                    WHEN candidate_item.trade_type = 'HAVE'
+                                     AND my_want.card_id IS NOT NULL
+                                    THEN candidate_item.card_id
+                                END
+                            ) AS matchedHaveCount,
+                            
+                            COUNT(
+                                DISTINCT CASE
+                                    WHEN candidate_item.trade_type = 'WANT'
+                                     AND my_have.card_id IS NOT NULL
+                                    THEN candidate_item.card_id
+                                END
+                            ) AS matchedWantCount
+                            
+                        FROM trade_sets candidate
+                        
+                        JOIN users u
+                          ON u.user_id = candidate.user_id
+                        
+                        JOIN trade_set_items candidate_item
+                          ON candidate_item.trade_set_id
+                           = candidate.trade_set_id
+                        
+                        LEFT JOIN my_want
+                          ON candidate_item.trade_type = 'HAVE'
+                         AND my_want.card_id
+                           = candidate_item.card_id
+                        
+                        LEFT JOIN my_have
+                          ON candidate_item.trade_type = 'WANT'
+                         AND my_have.card_id
+                           = candidate_item.card_id
+                        
+                        WHERE candidate.group_id = :groupId
+                          AND candidate.status = 'ACTIVE'
+                          AND candidate.user_id <> :userId
+                          AND candidate.trade_set_id <> :tradeSetId
+                        
+                        GROUP BY
+                            candidate.trade_set_id,
+                            candidate.user_id,
+                            u.nickname,
+                            candidate.created_at
+                            
+                        HAVING matchedHaveCount > 0
+                           AND matchedWantCount > 0
+                    )
+                    SELECT
+                        tradeSetId,
+                        userId,
+                        nickname,
+                        matchScore,
+                        createdAt
+                    FROM scored_matches
+                    WHERE
+                        :cursorScore IS NULL
+                        OR matchScore < :cursorScore
+                        OR (
+                            matchScore = :cursorScore
+                            AND createdAt < :cursorCreatedAt
+                        )
+                        OR (
+                            matchScore = :cursorScore
+                            AND createdAt = :cursorCreatedAt
+                            AND tradeSetId < :cursorTradeSetId
+                        )
+                    ORDER BY
+                        matchScore DESC,
+                        createdAt DESC,
+                        tradeSetId DESC
+                    LIMIT :limit
+                    """,
+            nativeQuery = true
+    )
+    List<TradeSetMatchCandidateProjection> findMatchCandidates(
+            @Param("tradeSetId") Long tradeSetId,
+            @Param("groupId") Long groupId,
+            @Param("userId") Long userId,
+            @Param("cursorScore") Long cursorScore,
+            @Param("cursorCreatedAt") LocalDateTime cursorCreatedAt,
+            @Param("cursorTradeSetId") Long cursorTradeSetId,
+            @Param("limit") int limit
     );
 }

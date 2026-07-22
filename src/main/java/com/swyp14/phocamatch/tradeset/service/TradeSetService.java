@@ -16,6 +16,7 @@ import com.swyp14.phocamatch.tradeset.exception.TradeSetAccessDeniedException;
 import com.swyp14.phocamatch.tradeset.exception.TradeSetNotFoundException;
 import com.swyp14.phocamatch.tradeset.repository.TradeSetItemRepository;
 import com.swyp14.phocamatch.tradeset.repository.TradeSetRepository;
+import com.swyp14.phocamatch.tradeset.support.TradeSetMatchCursorCodec;
 import com.swyp14.phocamatch.user.domain.User;
 import com.swyp14.phocamatch.user.exception.UserNotFoundException;
 import com.swyp14.phocamatch.user.repository.UserRepository;
@@ -667,4 +668,5 @@ public class TradeSetService {
                 tradeSet.getId()
         );
     }
+
 }
