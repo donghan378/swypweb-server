@@ -186,4 +186,45 @@ public class TradeSetController {
         }
     }
 
+    @DeleteMapping("/{tradeSetId}")
+    public ResponseEntity<?>
+    deleteTradeSet(
+            @AuthenticationPrincipal Jwt jwt,
+
+            @PathVariable
+            @Positive(message = "tradeSetId는 양수여야 합니다.")
+            Long tradeSetId
+    ) {
+
+        try{
+            Long userId =
+                    Long.valueOf(jwt.getSubject());
+
+            TradeSetDeleteResponse response =
+                    tradeSetService.deleteTradeSet(
+                            userId,
+                            tradeSetId
+                    );
+
+            return ResponseEntity
+                    .status(HttpStatus.OK)
+                    .body(
+                            ApiResponse.success(
+                                    200,
+                                    "교환 세트 삭제 완료",
+                                    response
+                            )
+                    );
+        }catch(TradeSetNotFoundException e){
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(ErrorResponse.of("RESOURCE_001", e.getMessage()));
+        }catch(TradeSetAccessDeniedException e){
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .body(ErrorResponse.of("AUTH_005", e.getMessage()));
+        }
+
+    }
+
 }

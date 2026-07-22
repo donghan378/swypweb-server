@@ -63,6 +63,17 @@ public class TradeSet {
     )
     private TradeSetStatus status;
 
+    public void delete(){
+        if(this.status == TradeSetStatus.DELETED){
+            return;
+        }
+        this.status = TradeSetStatus.DELETED;
+    }
+
+    public boolean isDeleted() {
+        return this.status == TradeSetStatus.DELETED;
+    }
+
     @Column(
             name = "created_at",
             nullable = false,

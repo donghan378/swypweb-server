@@ -24,9 +24,11 @@ public interface TradeSetRepository extends JpaRepository<TradeSet,Long> {
             FROM TradeSet ts
             JOIN FETCH ts.group
             WHERE ts.id = :tradeSetId
+                AND ts.status = :status
             """)
-    Optional<TradeSet> findDetailById(
-            @Param("tradeSetId") Long tradeSetId
+    Optional<TradeSet> findDetailByIdAndStatus(
+            @Param("tradeSetId") Long tradeSetId,
+            @Param("status") TradeSetStatus status
     );
 
     Optional<TradeSet> findByIdAndUser_Id(

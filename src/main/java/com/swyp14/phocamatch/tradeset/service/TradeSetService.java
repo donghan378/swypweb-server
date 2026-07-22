@@ -393,7 +393,7 @@ public class TradeSetService {
     ) {
         TradeSet tradeSet =
                 tradeSetRepository
-                        .findDetailById(tradeSetId)
+                        .findDetailByIdAndStatus(tradeSetId, TradeSetStatus.ACTIVE)
                         .orElseThrow(
                                 TradeSetNotFoundException::new
                         );
@@ -634,5 +634,37 @@ public class TradeSetService {
             Long cardId,
             TradeType tradeType
     ) {
+    }
+
+    @Transactional
+    public TradeSetDeleteResponse deleteTradeSet(
+            Long userId,
+            Long tradeSetId
+    ) {
+        TradeSet tradeSet =
+                tradeSetRepository.findById(tradeSetId)
+                        .orElseThrow(
+                                TradeSetNotFoundException::new
+                        );
+
+        if(tradeSet.isDeleted()){
+            throw new TradeSetNotFoundException();
+        }
+
+        validateOwner(
+                tradeSet,
+                userId
+        );
+
+        /*
+         * 채팅 기능이 구현되면
+         * 이 위치에서 교환 채팅 존재 여부를 검증한다.
+         */
+
+        tradeSet.delete();
+
+        return new TradeSetDeleteResponse(
+                tradeSet.getId()
+        );
     }
 }
