@@ -1,9 +1,6 @@
 package com.swyp14.phocamatch.chat.controller;
 
-import com.swyp14.phocamatch.chat.dto.ChatRoomCreateRequest;
-import com.swyp14.phocamatch.chat.dto.ChatRoomCreateResponse;
-import com.swyp14.phocamatch.chat.dto.ChatRoomHeaderResponse;
-import com.swyp14.phocamatch.chat.dto.ChatRoomListResponse;
+import com.swyp14.phocamatch.chat.dto.*;
 import com.swyp14.phocamatch.chat.exception.*;
 import com.swyp14.phocamatch.chat.service.ChatRoomQueryService;
 import com.swyp14.phocamatch.chat.service.ChatRoomService;
@@ -164,5 +161,50 @@ public class ChatRoomController {
                     );
         }
 
+    }
+
+    @GetMapping("/{chatId}/proposal")
+    public ResponseEntity<?>
+    getTradeProposalDetail(
+            @AuthenticationPrincipal Jwt jwt,
+
+            @PathVariable
+            @Positive(message = "chatId는 양수여야 합니다.")
+            Long chatId
+    ) {
+
+        try{
+            Long userId =
+                    Long.valueOf(jwt.getSubject());
+
+            TradeProposalDetailResponse response =
+                    chatRoomQueryService
+                            .getTradeProposalDetail(
+                                    userId,
+                                    chatId
+                            );
+
+            return ResponseEntity
+                    .status(HttpStatus.OK)
+                    .body(
+                            ApiResponse.success(
+                                    200,
+                                    "교환 제안 상세 정보 조회 완료",
+                                    response
+                            )
+                    );
+        }catch(ChatRoomNotFoundException e){
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(
+                            ErrorResponse.of("RESOURCE_001",e.getMessage())
+                    );
+        }catch(ChatRoomAccessDeniedException e){
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .body(
+                            ErrorResponse.of("AUTH_007",e.getMessage())
+                    );
+        }
     }
 }

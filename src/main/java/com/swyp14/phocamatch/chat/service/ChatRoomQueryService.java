@@ -235,4 +235,78 @@ public class ChatRoomQueryService {
                 card.getImageUrl()
         );
     }
+
+    @Transactional(readOnly = true)
+    public TradeProposalDetailResponse getTradeProposalDetail(
+            Long userId,
+            Long chatRoomId
+    ) {
+        ChatRoom chatRoom = chatRoomRepository
+                .findWithProposalById(chatRoomId)
+                .orElseThrow(ChatRoomNotFoundException::new);
+
+        validateParticipant(
+                chatRoomId,
+                userId
+        );
+
+        TradeProposal proposal =
+                chatRoom.getTradeProposal();
+
+        boolean isProposer =
+                proposal.getProposer()
+                        .getId()
+                        .equals(userId);
+
+        ProposalCardType myHaveType =
+                isProposer
+                        ? ProposalCardType.PROPOSER_GIVES
+                        : ProposalCardType.PROPOSER_RECEIVES;
+
+        ProposalCardType myWantType =
+                isProposer
+                        ? ProposalCardType.PROPOSER_RECEIVES
+                        : ProposalCardType.PROPOSER_GIVES;
+
+        List<TradeProposalCardProjection> cardResults =
+                tradeProposalItemRepository
+                        .findCardsByProposalId(
+                                proposal.getId()
+                        );
+
+        List<TradeProposalCardResponse> haveCards =
+                cardResults.stream()
+                        .filter(card ->
+                                card.getProposalType()
+                                        == myHaveType
+                        )
+                        .map(this::toCardResponse)
+                        .toList();
+
+        List<TradeProposalCardResponse> wantCards =
+                cardResults.stream()
+                        .filter(card ->
+                                card.getProposalType()
+                                        == myWantType
+                        )
+                        .map(this::toCardResponse)
+                        .toList();
+
+        return new TradeProposalDetailResponse(
+                haveCards,
+                wantCards
+        );
+    }
+
+    private TradeProposalCardResponse toCardResponse(
+            TradeProposalCardProjection card
+    ) {
+        return new TradeProposalCardResponse(
+                card.getPhotoCardId(),
+                card.getPhotoCardName(),
+                card.getAlbumName(),
+                card.getVersionName(),
+                card.getImageUrl()
+        );
+    }
 }
