@@ -1,6 +1,7 @@
 package com.swyp14.phocamatch.tradeset.repository;
 
 import com.swyp14.phocamatch.tradeset.domain.TradeSetItem;
+import com.swyp14.phocamatch.tradeset.domain.TradeType;
 import com.swyp14.phocamatch.tradeset.dto.MatchedCardProjection;
 import com.swyp14.phocamatch.tradeset.dto.TradeSetCardQueryResult;
 import com.swyp14.phocamatch.tradeset.dto.TradeSetRepresentativeQueryResult;
@@ -121,5 +122,16 @@ public interface TradeSetItemRepository extends JpaRepository<TradeSetItem,Long>
     List<MatchedCardProjection> findMatchedCards(
             @Param("myTradeSetId") Long myTradeSetId,
             @Param("candidateIds") List<Long> candidateIds
+    );
+
+    @Query("""
+        SELECT item.card.id
+        FROM TradeSetItem item
+        WHERE item.tradeSet.id = :tradeSetId
+          AND item.tradeType = :tradeType
+        """)
+    List<Long> findCardIdsByTradeSetIdAndType(
+            @Param("tradeSetId") Long tradeSetId,
+            @Param("tradeType") TradeType tradeType
     );
 }
