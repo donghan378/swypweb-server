@@ -2,10 +2,9 @@ package com.swyp14.phocamatch.chat.controller;
 
 import com.swyp14.phocamatch.chat.dto.ChatRoomCreateRequest;
 import com.swyp14.phocamatch.chat.dto.ChatRoomCreateResponse;
+import com.swyp14.phocamatch.chat.dto.ChatRoomHeaderResponse;
 import com.swyp14.phocamatch.chat.dto.ChatRoomListResponse;
-import com.swyp14.phocamatch.chat.exception.InvalidGiveCardsException;
-import com.swyp14.phocamatch.chat.exception.InvalidReceiveCardsException;
-import com.swyp14.phocamatch.chat.exception.SelfTradeProposalException;
+import com.swyp14.phocamatch.chat.exception.*;
 import com.swyp14.phocamatch.chat.service.ChatRoomQueryService;
 import com.swyp14.phocamatch.chat.service.ChatRoomService;
 import com.swyp14.phocamatch.global.error.ErrorResponse;
@@ -13,6 +12,7 @@ import com.swyp14.phocamatch.global.response.ApiResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
@@ -119,5 +119,50 @@ public class ChatRoomController {
                                 response
                         )
                 );
+    }
+
+    @GetMapping("/{chatId}/header")
+    public ResponseEntity<?>
+    getChatRoomHeader(
+            @AuthenticationPrincipal Jwt jwt,
+
+            @PathVariable
+            @Positive(message = "chatId는 양수여야 합니다.")
+            Long chatId
+    ) {
+        try{
+            Long userId =
+                    Long.valueOf(jwt.getSubject());
+
+            ChatRoomHeaderResponse response =
+                    chatRoomQueryService
+                            .getChatRoomHeader(
+                                    userId,
+                                    chatId
+                            );
+
+            return ResponseEntity
+                    .status(HttpStatus.OK)
+                    .body(
+                            ApiResponse.success(
+                                    200,
+                                    "채팅방 상단 정보 조회 완료",
+                                    response
+                            )
+                    );
+        }catch(ChatRoomNotFoundException e){
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(
+                            ErrorResponse.of("RESOURCE_001",e.getMessage())
+                    );
+        }catch(ChatRoomAccessDeniedException e){
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .body(
+                            ErrorResponse.of("AUTH_007",e.getMessage())
+                    );
+        }
+
     }
 }

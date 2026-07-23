@@ -110,4 +110,9 @@ public interface ChatRoomMemberRepository extends JpaRepository<ChatRoomMember, 
             @Param("cursorChatId") Long cursorChatId,
             @Param("limit") int limit
     );
+
+    boolean existsByChatRoom_IdAndUser_Id(
+            Long chatRoomId,
+            Long userId
+    );
 }

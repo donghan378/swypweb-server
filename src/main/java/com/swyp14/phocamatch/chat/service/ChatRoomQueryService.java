@@ -1,12 +1,18 @@
 package com.swyp14.phocamatch.chat.service;
 
+import com.swyp14.phocamatch.chat.domain.ChatRoom;
+import com.swyp14.phocamatch.chat.domain.ProposalCardType;
+import com.swyp14.phocamatch.chat.domain.TradeProposal;
 import com.swyp14.phocamatch.chat.domain.TradeProposalStatus;
-import com.swyp14.phocamatch.chat.dto.ChatRoomCursor;
-import com.swyp14.phocamatch.chat.dto.ChatRoomListItemResponse;
-import com.swyp14.phocamatch.chat.dto.ChatRoomListProjection;
-import com.swyp14.phocamatch.chat.dto.ChatRoomListResponse;
+import com.swyp14.phocamatch.chat.dto.*;
+import com.swyp14.phocamatch.chat.exception.ChatRoomAccessDeniedException;
+import com.swyp14.phocamatch.chat.exception.ChatRoomNotFoundException;
 import com.swyp14.phocamatch.chat.repository.ChatRoomMemberRepository;
+import com.swyp14.phocamatch.chat.repository.ChatRoomRepository;
+import com.swyp14.phocamatch.chat.repository.TradeProposalItemRepository;
+import com.swyp14.phocamatch.chat.repository.TradeProposalRepository;
 import com.swyp14.phocamatch.chat.support.ChatRoomCursorCodec;
+import com.swyp14.phocamatch.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +28,9 @@ public class ChatRoomQueryService {
 
     private final ChatRoomCursorCodec
             cursorCodec;
+
+    private final ChatRoomRepository chatRoomRepository;
+    private final TradeProposalItemRepository tradeProposalItemRepository;
 
     @Transactional(readOnly = true)
     public ChatRoomListResponse getMyChatRooms(
@@ -109,5 +118,121 @@ public class ChatRoomQueryService {
         }
 
         return content;
+    }
+
+    @Transactional(readOnly = true)
+    public ChatRoomHeaderResponse getChatRoomHeader(
+            Long userId,
+            Long chatRoomId
+    ) {
+        ChatRoom chatRoom = chatRoomRepository
+                .findHeaderById(chatRoomId)
+                .orElseThrow(ChatRoomNotFoundException::new);
+
+        validateParticipant(
+                chatRoomId,
+                userId
+        );
+
+        TradeProposal proposal =
+                chatRoom.getTradeProposal();
+
+        boolean isProposer =
+                proposal.getProposer()
+                        .getId()
+                        .equals(userId);
+
+        User partner =
+                isProposer
+                        ? proposal.getReceiver()
+                        : proposal.getProposer();
+
+        List<TradeProposalCardProjection> cards =
+                tradeProposalItemRepository
+                        .findCardsByProposalId(
+                                proposal.getId()
+                        );
+
+        ProposalCardType myHaveType =
+                isProposer
+                        ? ProposalCardType.PROPOSER_GIVES
+                        : ProposalCardType.PROPOSER_RECEIVES;
+
+        ProposalCardType myWantType =
+                isProposer
+                        ? ProposalCardType.PROPOSER_RECEIVES
+                        : ProposalCardType.PROPOSER_GIVES;
+
+        List<TradeProposalCardProjection> haveCards =
+                cards.stream()
+                        .filter(card ->
+                                card.getProposalType()
+                                        == myHaveType
+                        )
+                        .toList();
+
+        List<TradeProposalCardProjection> wantCards =
+                cards.stream()
+                        .filter(card ->
+                                card.getProposalType()
+                                        == myWantType
+                        )
+                        .toList();
+
+        ChatRepresentativeCardResponse representHaveCard =
+                haveCards.isEmpty()
+                        ? null
+                        : toRepresentativeCard(
+                        haveCards.get(0)
+                );
+
+        ChatRepresentativeCardResponse representWantCard =
+                wantCards.isEmpty()
+                        ? null
+                        : toRepresentativeCard(
+                        wantCards.get(0)
+                );
+
+        boolean completed =
+                proposal.getStatus()
+                        == TradeProposalStatus.COMPLETED;
+
+        return new ChatRoomHeaderResponse(
+                chatRoom.getId(),
+                partner.getNickname(),
+                completed,
+                representHaveCard,
+                representWantCard,
+                haveCards.size(),
+                wantCards.size()
+        );
+    }
+
+    private void validateParticipant(
+            Long chatRoomId,
+            Long userId
+    ) {
+        boolean participant =
+                chatRoomMemberRepository
+                        .existsByChatRoom_IdAndUser_Id(
+                                chatRoomId,
+                                userId
+                        );
+
+        if (!participant) {
+            throw new ChatRoomAccessDeniedException();
+        }
+    }
+
+    private ChatRepresentativeCardResponse
+    toRepresentativeCard(
+            TradeProposalCardProjection card
+    ) {
+        return new ChatRepresentativeCardResponse(
+                card.getPhotoCardName(),
+                card.getAlbumName(),
+                card.getVersionName(),
+                card.getImageUrl()
+        );
     }
 }
