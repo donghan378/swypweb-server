@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 
 import javax.crypto.SecretKey;
 import java.time.Instant;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -80,6 +81,47 @@ public class TokenService {
         return encode(claims);
     }
 
+    public AccessTokenPayload parseAccessToken(
+            String token
+    ) {
+        NimbusJwtDecoder accessTokenDecoder =
+                createAccessTokenDecoder();
+
+        Jwt jwt =
+                accessTokenDecoder.decode(token);
+
+        String subject =
+                jwt.getSubject();
+
+        if (subject == null || subject.isBlank()) {
+            throw new JwtValidationException(
+                    "Access Token에 사용자 ID가 없습니다.",
+                    List.of(
+                            new OAuth2Error(
+                                    "invalid_token"
+                            )
+                    )
+            );
+        }
+
+        try {
+            Long userId =
+                    Long.valueOf(subject);
+
+            return new AccessTokenPayload(userId);
+
+        } catch (NumberFormatException exception) {
+            throw new JwtValidationException(
+                    "Access Token의 사용자 ID 형식이 올바르지 않습니다.",
+                    List.of(
+                            new OAuth2Error(
+                                    "invalid_token"
+                            )
+                    )
+            );
+        }
+    }
+
     public SignupTokenPayload parsesSignupToken(
             String token
     ){
@@ -141,6 +183,118 @@ public class TokenService {
         );
     }
 
+    private NimbusJwtDecoder
+    createAccessTokenDecoder() {
+
+        NimbusJwtDecoder decoder =
+                NimbusJwtDecoder
+                        .withSecretKey(secretKey)
+                        .macAlgorithm(
+                                MacAlgorithm.HS256
+                        )
+                        .build();
+
+        OAuth2TokenValidator<Jwt>
+                defaultValidator =
+                JwtValidators
+                        .createDefaultWithIssuer(
+                                issuer
+                        );
+
+        OAuth2TokenValidator<Jwt>
+                accessTypeValidator =
+                jwt -> {
+                    String tokenType =
+                            jwt.getClaimAsString(
+                                    "token_type"
+                            );
+
+                    if (
+                            TokenType.ACCESS
+                                    .name()
+                                    .equals(tokenType)
+                    ) {
+                        return OAuth2TokenValidatorResult
+                                .success();
+                    }
+
+                    OAuth2Error error =
+                            new OAuth2Error(
+                                    "invalid_token",
+                                    "Access Token이 아닙니다.",
+                                    null
+                            );
+
+                    return OAuth2TokenValidatorResult
+                            .failure(error);
+                };
+
+        decoder.setJwtValidator(
+                new DelegatingOAuth2TokenValidator<>(
+                        defaultValidator,
+                        accessTypeValidator
+                )
+        );
+
+        return decoder;
+    }
+
+    private NimbusJwtDecoder
+    createSignupTokenDecoder() {
+
+        NimbusJwtDecoder decoder =
+                NimbusJwtDecoder
+                        .withSecretKey(secretKey)
+                        .macAlgorithm(
+                                MacAlgorithm.HS256
+                        )
+                        .build();
+
+        OAuth2TokenValidator<Jwt>
+                defaultValidator =
+                JwtValidators
+                        .createDefaultWithIssuer(
+                                issuer
+                        );
+
+        OAuth2TokenValidator<Jwt>
+                signupTypeValidator =
+                jwt -> {
+                    String tokenType =
+                            jwt.getClaimAsString(
+                                    "token_type"
+                            );
+
+                    if (
+                            TokenType.SIGNUP
+                                    .name()
+                                    .equals(tokenType)
+                    ) {
+                        return OAuth2TokenValidatorResult
+                                .success();
+                    }
+
+                    OAuth2Error error =
+                            new OAuth2Error(
+                                    "invalid_token",
+                                    "Signup Token이 아닙니다.",
+                                    null
+                            );
+
+                    return OAuth2TokenValidatorResult
+                            .failure(error);
+                };
+
+        decoder.setJwtValidator(
+                new DelegatingOAuth2TokenValidator<>(
+                        defaultValidator,
+                        signupTypeValidator
+                )
+        );
+
+        return decoder;
+    }
+
     private String encode(JwtClaimsSet claims){
         JwsHeader header =
                 JwsHeader
@@ -158,12 +312,15 @@ public class TokenService {
                 .getTokenValue();
     }
 
+    public record AccessTokenPayload(
+            Long userId
+    ) {
+    }
+
     public record SignupTokenPayload(
             AuthProvider provider,
             String providerUserId,
             String email
     ){
-
     }
-
 }

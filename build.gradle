@@ -31,6 +31,9 @@ dependencies {
     // 우리 서비스 JWT Access Token 검증
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
 
+    // WebSocket
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+
     compileOnly 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     runtimeOnly 'com.mysql:mysql-connector-j'

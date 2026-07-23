@@ -61,4 +61,38 @@ public class ChatMessage {
             updatable = false
     )
     private LocalDateTime createdAt;
+
+    public static ChatMessage createText(
+            ChatRoom chatRoom,
+            User sender,
+            String content
+    ) {
+        ChatMessage message =
+                new ChatMessage();
+
+        message.chatRoom = chatRoom;
+        message.sender = sender;
+        message.messageType = MessageType.TEXT;
+        message.content = content;
+        message.imageUrl = null;
+
+        return message;
+    }
+
+    public static ChatMessage createImage(
+            ChatRoom chatRoom,
+            User sender,
+            String imageUrl
+    ) {
+        ChatMessage message =
+                new ChatMessage();
+
+        message.chatRoom = chatRoom;
+        message.sender = sender;
+        message.messageType = MessageType.IMAGE;
+        message.content = null;
+        message.imageUrl = imageUrl;
+
+        return message;
+    }
 }
