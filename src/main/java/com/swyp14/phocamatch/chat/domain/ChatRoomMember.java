@@ -45,6 +45,21 @@ public class ChatRoomMember {
     @Column(name = "last_read_message_id")
     private Long lastReadMessageId;
 
+    public void updateLastReadMessageId(
+            Long messageId
+    ) {
+        if (messageId == null) {
+            return;
+        }
+
+        if (
+                this.lastReadMessageId == null
+                        || messageId > this.lastReadMessageId
+        ) {
+            this.lastReadMessageId = messageId;
+        }
+    }
+
     public static ChatRoomMember create(
             ChatRoom chatRoom,
             User user
