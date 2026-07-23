@@ -5,6 +5,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(
         name = "chat_rooms",
@@ -30,6 +32,14 @@ public class ChatRoom {
             nullable = false
     )
     private TradeProposal tradeProposal;
+
+    @Column(
+            name = "created_at",
+            nullable = false,
+            insertable = false,
+            updatable = false
+    )
+    private LocalDateTime createdAt;
 
     public static ChatRoom create(
             TradeProposal tradeProposal
