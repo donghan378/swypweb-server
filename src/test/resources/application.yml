@@ -15,19 +15,31 @@ spring:
       client:
         registration:
           google:
-            client-id: dummy
-            client-secret: dummy
+            client-id: dummy-client-id
+            client-secret: dummy-client-secret
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            scope:
+              - openid
+              - email
+
+app:
+  jwt:
+    issuer: phocamatch
+    secret: ahgt+VXC/1ANruwOiL1VLv12C2e5pGQqaDA70qLqB2k=
+    access-token-expiration-seconds: 3600
+    signup-token-expiration-seconds: 600
+
+  frontend:
+    login-success-url: http://localhost:3000/oauth/callback
+    login-failure-rul: http://localhost:3000/login
 
 cloud:
   aws:
     credentials:
-      access-key: dummy
-      secret-key: dummy
+      access-key: dummy-access-key
+      secret-key: dummy-secret-key
     region:
       static: ap-northeast-2
     s3:
       bucket: dummy-bucket
-
-app:
-  jwt:
-    secret: test-secret-key-for-jwt-1234567890
