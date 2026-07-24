@@ -50,4 +50,4 @@ cloud:
     region:
       static: ap-northeast-2
     s3:
-      bucket:phocamatch-images-504815484015-ap-northeast-2-an
+      bucket: phocamatch-images-504815484015-ap-northeast-2-an
