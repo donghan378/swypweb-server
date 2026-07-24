@@ -23,7 +23,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     ) {
         registry.addEndpoint("/ws")
                 .setAllowedOriginPatterns(
-                        "http://localhost:5173"
+                        "http://localhost:3000"
                 );
     }
 

@@ -38,5 +38,5 @@ app:
     signup-token-expiration-seconds: 600
 
   frontend:
-    login-success-url: http://localhost:5173/oauth/callback
-    login-failure-rul: http://localhost:5173/login
+    login-success-url: http://localhost:3000/oauth/callback
+    login-failure-rul: http://localhost:3000/login
