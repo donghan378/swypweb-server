@@ -1,0 +1,51 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: JDK 17 설정
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Gradle 실행 권한 부여
+        run: chmod +x ./gradlew
+
+      - name: 빌드 및 테스트 (H2 사용, RDS 접근 없음)
+        run: ./gradlew clean build
+
+      - name: 빌드 결과물 확인
+        run: ls -la build/libs
+
+      - name: EC2로 jar 파일 전송
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "build/libs/*-SNAPSHOT.jar"
+          target: "/home/ubuntu/deploy"
+          strip_components: 2
+
+      - name: EC2에서 앱 재시작
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /home/ubuntu/deploy
+            mv *-SNAPSHOT.jar app.jar
+            sudo systemctl restart phocamatch
+            sudo systemctl status phocamatch --no-pager
