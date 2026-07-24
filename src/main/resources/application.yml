@@ -3,8 +3,8 @@ spring:
     name: PhocaMatch
 
   datasource:
-    url: ${DB_URL}
-    username: ${DB_USERNAME}
+    url: jdbc:mysql://phocamatch-db.c1a2wgc0c2nt.ap-northeast-2.rds.amazonaws.com:3306/phocamatch?useSSL=true&serverTimezone=Asia/Seoul
+    username: admin
     password : ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
@@ -40,3 +40,14 @@ app:
   frontend:
     login-success-url: http://localhost:3000/oauth/callback
     login-failure-rul: http://localhost:3000/login
+
+
+cloud:
+  aws:
+    credentials:
+      access-key: ${AWS_ACCESS_KEY}
+      secret-key: ${AWS_SECRET_KEY}
+    region:
+      static: ap-northeast-2
+    s3:
+      bucket:phocamatch-images-504815484015-ap-northeast-2-an
