@@ -134,4 +134,21 @@ public interface TradeSetItemRepository extends JpaRepository<TradeSetItem,Long>
             @Param("tradeSetId") Long tradeSetId,
             @Param("tradeType") TradeType tradeType
     );
+
+    @Query("""
+            SELECT item.tradeSet.id AS tradeSetId,
+                   item.id AS tradeSetItemId,
+                   item.tradeType AS tradeType,
+                   item.card.imageUrl AS imageUrl
+            FROM TradeSetItem item
+            WHERE item.tradeSet.id IN :tradeSetIds
+            ORDER BY item.tradeSet.id DESC,
+                     item.tradeType ASC,
+                     item.id ASC
+            """)
+    List<TradeFeedCardProjection>
+    findFeedCardsByTradeSetIds(
+            @Param("tradeSetIds")
+            List<Long> tradeSetIds
+    );
 }
