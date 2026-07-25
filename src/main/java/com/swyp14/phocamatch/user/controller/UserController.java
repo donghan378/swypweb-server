@@ -6,11 +6,14 @@ import com.swyp14.phocamatch.user.domain.User;
 import com.swyp14.phocamatch.user.dto.NicknameUpdateRequest;
 import com.swyp14.phocamatch.user.dto.NicknameUpdateResponse;
 import com.swyp14.phocamatch.user.dto.UserResponse;
+import com.swyp14.phocamatch.user.exception.AlreadyWithdrawnUserException;
 import com.swyp14.phocamatch.user.exception.DuplicateNicknameException;
 import com.swyp14.phocamatch.user.exception.UserNotFoundException;
 import com.swyp14.phocamatch.user.service.UserService;
+import com.swyp14.phocamatch.user.service.UserWithdrawalService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -23,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
+    private final UserWithdrawalService userWithdrawalService;
 
     @GetMapping("/me")
     public ResponseEntity<?> getMyInfo(
@@ -83,6 +87,33 @@ public class UserController {
             return ResponseEntity
                     .status(HttpStatus.CONFLICT)
                     .body(ErrorResponse.of("RESOURCE_002", exception.getMessage()));
+        }
+    }
+
+    @DeleteMapping("/me")
+    public ResponseEntity<?> withdraw(
+            @AuthenticationPrincipal Jwt jwt
+    ) {
+        try{
+            Long userId = Long.valueOf(jwt.getSubject());
+
+            userWithdrawalService.withdraw(userId);
+
+            return ResponseEntity
+                    .status(HttpStatus.OK)
+                    .body(
+                            ApiResponse.success(
+                                    200,
+                                    "회원 탈퇴가 완료되었습니다.",
+                                    null
+                            )
+                    );
+        }catch(AlreadyWithdrawnUserException e){
+            return ResponseEntity
+                    .status(HttpStatus.CONFLICT)
+                    .body(
+                            ErrorResponse.of("403", e.getMessage())
+                    );
         }
     }
 
