@@ -56,7 +56,8 @@ public class SecurityConfig {
                         .requestMatchers(
                                 HttpMethod.GET,
                                 "/api/v1/terms/**",
-                                "/api/v1/trade-sets/**"
+                                "/api/v1/trade-sets/**",
+                                "/api/v1/home/trade-sets"
                         ).permitAll()
 
                         .anyRequest().authenticated()
