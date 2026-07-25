@@ -1,5 +1,6 @@
 package com.swyp14.phocamatch.user.domain;
 
+import com.swyp14.phocamatch.user.exception.AlreadyWithdrawnUserException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -89,5 +90,34 @@ public class User {
     @PreUpdate
     private void preUpdate(){
         this.updatedAt = LocalDateTime.now();
+    }
+
+
+    @Enumerated(EnumType.STRING)
+    @Column(
+            name = "status",
+            nullable = false,
+            length = 20
+    )
+    private UserStatus status = UserStatus.ACTIVE;
+
+    @Column(name = "withdrawn_at")
+    private LocalDateTime withdrawnAt;
+
+    public void withdraw() {
+        if (isWithdrawn()) {
+            throw new AlreadyWithdrawnUserException();
+        }
+
+        this.status = UserStatus.WITHDRAWN;
+        this.withdrawnAt = LocalDateTime.now();
+    }
+
+    public boolean isWithdrawn() {
+        return this.status == UserStatus.WITHDRAWN;
+    }
+
+    public boolean isActive() {
+        return this.status == UserStatus.ACTIVE;
     }
 }

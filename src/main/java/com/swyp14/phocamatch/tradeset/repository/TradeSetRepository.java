@@ -5,6 +5,7 @@ import com.swyp14.phocamatch.tradeset.domain.TradeSetStatus;
 import com.swyp14.phocamatch.tradeset.dto.TradeSetMatchCandidateProjection;
 import com.swyp14.phocamatch.tradeset.dto.TradeSetTypeCountQueryResult;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -159,5 +160,18 @@ public interface TradeSetRepository extends JpaRepository<TradeSet,Long> {
             @Param("cursorCreatedAt") LocalDateTime cursorCreatedAt,
             @Param("cursorTradeSetId") Long cursorTradeSetId,
             @Param("limit") int limit
+    );
+
+    @Modifying(clearAutomatically = true)
+    @Query("""
+            UPDATE TradeSet tradeSet
+            SET tradeSet.status = :deletedStatus
+            WHERE tradeSet.user.id = :userId
+              AND tradeSet.status = :activeStatus
+            """)
+    int deleteActiveTradeSetsByUserId(
+            @Param("userId") Long userId,
+            @Param("activeStatus") TradeSetStatus activeStatus,
+            @Param("deletedStatus") TradeSetStatus deletedStatus
     );
 }

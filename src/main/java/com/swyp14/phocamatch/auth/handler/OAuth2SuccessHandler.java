@@ -3,6 +3,7 @@ package com.swyp14.phocamatch.auth.handler;
 import com.swyp14.phocamatch.auth.token.TokenService;
 import com.swyp14.phocamatch.user.domain.AuthProvider;
 import com.swyp14.phocamatch.user.domain.User;
+import com.swyp14.phocamatch.user.exception.WithdrawnUserLoginException;
 import com.swyp14.phocamatch.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -18,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 @Component
@@ -68,6 +70,11 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         if(optionalUser.isPresent()) {
             User user = optionalUser.get();
 
+            if(user.isWithdrawn()){
+                redirectToWithdrawnUserPage(response);
+                return;
+            }
+
             if(!email.equals(user.getEmail())) {
                 user.updateEmail(email);
             }
@@ -111,5 +118,30 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
         response.sendRedirect(redirectUrl);
 
+    }
+
+    private void redirectToWithdrawnUserPage(
+            HttpServletResponse response
+    ) throws IOException {
+
+        String redirectUrl =
+                UriComponentsBuilder
+                        .fromUriString(
+                                "http://localhost:3000"
+                                        + "/login/callback"
+                        )
+                        .queryParam(
+                                "error",
+                                "WITHDRAWN_USER"
+                        )
+                        .queryParam(
+                                "message",
+                                "탈퇴한 계정입니다."
+                        )
+                        .build()
+                        .encode(StandardCharsets.UTF_8)
+                        .toUriString();
+
+        response.sendRedirect(redirectUrl);
     }
 }
