@@ -15,7 +15,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class OAuth2FailureHandler implements AuthenticationFailureHandler {
 
-    @Value("${app.frontend.login-failure-rul}")
+    @Value("${app.frontend.login-failure-url}")
     private String frontendFailureUrl;
 
     @Override
