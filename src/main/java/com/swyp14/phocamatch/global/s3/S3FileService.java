@@ -213,4 +213,84 @@ public class S3FileService {
             String url
     ) {
     }
+
+    public S3UploadResult uploadChatImage(
+            Long chatRoomId,
+            MultipartFile image
+    ) {
+        String extension =
+                extractExtension(
+                        image.getOriginalFilename()
+                );
+
+        String key =
+                "chat-images/"
+                        + chatRoomId
+                        + "/"
+                        + UUID.randomUUID()
+                        + "."
+                        + extension;
+
+        PutObjectRequest request =
+                PutObjectRequest.builder()
+                        .bucket(bucket)
+                        .key(key)
+                        .contentType(
+                                image.getContentType()
+                        )
+                        .contentLength(
+                                image.getSize()
+                        )
+                        .build();
+
+        try {
+            s3Client.putObject(
+                    request,
+                    RequestBody.fromInputStream(
+                            image.getInputStream(),
+                            image.getSize()
+                    )
+            );
+
+            return new S3UploadResult(
+                    key,
+                    createFileUrl(key)
+            );
+
+        } catch (IOException | S3Exception exception) {
+            throw new S3UploadException(exception);
+        }
+    }
+
+    public boolean isManagedUrl(
+            String fileUrl
+    ) {
+        if (
+                fileUrl == null
+                        || fileUrl.isBlank()
+        ) {
+            return false;
+        }
+
+        String baseUrl;
+
+        if (
+                publicBaseUrl != null
+                        && !publicBaseUrl.isBlank()
+        ) {
+            baseUrl =
+                    removeTrailingSlash(
+                            publicBaseUrl
+                    ) + "/chat-images/";
+        } else {
+            baseUrl =
+                    "https://"
+                            + bucket
+                            + ".s3."
+                            + region
+                            + ".amazonaws.com/chat-images/";
+        }
+
+        return fileUrl.startsWith(baseUrl);
+    }
 }

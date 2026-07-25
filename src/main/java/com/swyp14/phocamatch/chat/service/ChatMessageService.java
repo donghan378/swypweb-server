@@ -11,6 +11,7 @@ import com.swyp14.phocamatch.chat.exception.InvalidChatMessageException;
 import com.swyp14.phocamatch.chat.repository.ChatMessageRepository;
 import com.swyp14.phocamatch.chat.repository.ChatRoomMemberRepository;
 import com.swyp14.phocamatch.chat.repository.ChatRoomRepository;
+import com.swyp14.phocamatch.global.s3.S3FileService;
 import com.swyp14.phocamatch.user.domain.User;
 import com.swyp14.phocamatch.user.exception.UserNotFoundException;
 import com.swyp14.phocamatch.user.repository.UserRepository;
@@ -28,6 +29,8 @@ public class ChatMessageService {
     private final ChatMessageRepository
             chatMessageRepository;
     private final UserRepository userRepository;
+
+    private final S3FileService s3FileService;
 
     @Transactional
     public ChatMessageResponse sendMessage(
@@ -162,6 +165,14 @@ public class ChatMessageService {
         ) {
             throw new InvalidChatMessageException(
                     "이미지 메시지의 imageUrl은 필수입니다."
+            );
+        }
+
+        if (!s3FileService.isManagedUrl(
+                request.imageUrl()
+        )) {
+            throw new InvalidChatMessageException(
+                    "허용되지 않은 이미지 URL입니다."
             );
         }
 
