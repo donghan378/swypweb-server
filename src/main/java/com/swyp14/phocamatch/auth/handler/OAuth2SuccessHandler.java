@@ -127,7 +127,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         String redirectUrl =
                 UriComponentsBuilder
                         .fromUriString(
-                                "http://localhost:3000"
+                                "https://swypweb-client.vercel.app"
                                         + "/login/callback"
                         )
                         .queryParam(

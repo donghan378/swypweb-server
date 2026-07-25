@@ -31,8 +31,8 @@ app:
     signup-token-expiration-seconds: 600
 
   frontend:
-    login-success-url: http://localhost:3000/oauth/callback
-    login-failure-rul: http://localhost:3000/login
+    login-success-url: https://swypweb-client.vercel.app/oauth/callback
+    login-failure-url: https://swypweb-client.vercel.app/login
 
 cloud:
   aws:

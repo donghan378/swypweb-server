@@ -23,7 +23,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     ) {
         registry.addEndpoint("/ws")
                 .setAllowedOriginPatterns(
-                        "http://localhost:3000"
+                        "https://swypweb-client.vercel.app"
                 );
     }
 
