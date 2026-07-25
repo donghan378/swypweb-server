@@ -6,6 +6,7 @@ import com.swyp14.phocamatch.auth.service.AuthService;
 import com.swyp14.phocamatch.global.error.ErrorResponse;
 import com.swyp14.phocamatch.global.response.ApiResponse;
 import com.swyp14.phocamatch.user.exception.DuplicateNicknameException;
+import com.swyp14.phocamatch.user.exception.WithdrawnUserLoginException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
