@@ -4,6 +4,8 @@ import com.swyp14.phocamatch.tradeset.domain.TradeSet;
 import com.swyp14.phocamatch.tradeset.domain.TradeSetStatus;
 import com.swyp14.phocamatch.tradeset.dto.TradeSetMatchCandidateProjection;
 import com.swyp14.phocamatch.tradeset.dto.TradeSetTypeCountQueryResult;
+import com.swyp14.phocamatch.user.domain.UserStatus;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -173,5 +175,29 @@ public interface TradeSetRepository extends JpaRepository<TradeSet,Long> {
             @Param("userId") Long userId,
             @Param("activeStatus") TradeSetStatus activeStatus,
             @Param("deletedStatus") TradeSetStatus deletedStatus
+    );
+
+    @Query("""
+            SELECT tradeSet.id AS tradeSetId,
+                   tradeSet.group.id AS groupId,
+                   tradeSet.group.name AS groupName,
+                   tradeSet.user.id AS userId,
+                   tradeSet.user.nickname AS nickname,
+                   tradeSet.createdAt AS createdAt
+            FROM TradeSet tradeSet
+            WHERE tradeSet.status = :tradeSetStatus
+              AND tradeSet.user.status = :userStatus
+              AND (:groupId IS NULL OR tradeSet.group.id = :groupId)
+              AND (:cursor IS NULL OR tradeSet.id < :cursor)
+            ORDER BY tradeSet.id DESC
+            """)
+    List<TradeFeedSetProjection> findFeed(
+            @Param("groupId") Long groupId,
+            @Param("cursor") Long cursor,
+            @Param("tradeSetStatus")
+            TradeSetStatus tradeSetStatus,
+            @Param("userStatus")
+            UserStatus userStatus,
+            Pageable pageable
     );
 }
