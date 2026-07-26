@@ -33,7 +33,7 @@ public class StompJwtChannelInterceptor implements ChannelInterceptor {
     private static final Pattern
             CHAT_ROOM_SUBSCRIBE_PATTERN =
             Pattern.compile(
-                    "^/sub/chat/rooms/(\\\\d+)(?:/(?:read|completion))?$"
+                    "^/sub/chat/rooms/(\\d+)(?:/(?:read|completion))?$"
             );
 
     private final TokenService tokenService;
