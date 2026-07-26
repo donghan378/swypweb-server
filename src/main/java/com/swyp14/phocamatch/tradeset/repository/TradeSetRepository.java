@@ -28,6 +28,7 @@ public interface TradeSetRepository extends JpaRepository<TradeSet,Long> {
             SELECT ts
             FROM TradeSet ts
             JOIN FETCH ts.group
+            JOIN FETCH ts.user
             WHERE ts.id = :tradeSetId
                 AND ts.status = :status
             """)

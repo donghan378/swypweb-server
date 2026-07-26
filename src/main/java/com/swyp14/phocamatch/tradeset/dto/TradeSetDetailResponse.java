@@ -7,6 +7,9 @@ public record TradeSetDetailResponse(
         Long tradeSetId,
         Long groupId,
         String groupName,
+        Long userId,
+        String nickname,
+        String profileImageUrl,
         LocalDateTime createdAt,
         List<TradeSetCardResponse> haveCards,
         List<TradeSetCardResponse> wantCards
