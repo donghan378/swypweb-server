@@ -14,5 +14,7 @@ public interface TradeFeedSetProjection {
 
     String getNickname();
 
+    String getProfileImageUrl();
+
     LocalDateTime getCreatedAt();
 }

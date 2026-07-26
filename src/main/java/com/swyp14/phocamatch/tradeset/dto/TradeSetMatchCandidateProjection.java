@@ -10,6 +10,8 @@ public interface TradeSetMatchCandidateProjection {
 
     String getNickname();
 
+    String getProfileImageUrl();
+
     Long getMatchScore();
 
     LocalDateTime getCreatedAt();

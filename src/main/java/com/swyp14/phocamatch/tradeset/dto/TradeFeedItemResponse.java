@@ -9,6 +9,7 @@ public record TradeFeedItemResponse(
         String groupName,
         Long userId,
         String nickname,
+        String profileImageUrl,
         List<String> haveImages,
         List<String> wantImages,
         LocalDateTime createdAt

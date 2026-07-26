@@ -28,6 +28,7 @@ public interface TradeSetRepository extends JpaRepository<TradeSet,Long> {
             SELECT ts
             FROM TradeSet ts
             JOIN FETCH ts.group
+            JOIN FETCH ts.user
             WHERE ts.id = :tradeSetId
                 AND ts.status = :status
             """)
@@ -60,6 +61,7 @@ public interface TradeSetRepository extends JpaRepository<TradeSet,Long> {
                             candidate.trade_set_id AS tradeSetId,
                             candidate.user_id AS userId,
                             u.nickname AS nickname,
+                            u.profile_image_url AS profileImageUrl,
                             candidate.created_at AS createdAt,
                             
                             COUNT(
@@ -122,6 +124,7 @@ public interface TradeSetRepository extends JpaRepository<TradeSet,Long> {
                             candidate.trade_set_id,
                             candidate.user_id,
                             u.nickname,
+                            u.profile_image_url,
                             candidate.created_at
                             
                         HAVING matchedHaveCount > 0
@@ -131,6 +134,7 @@ public interface TradeSetRepository extends JpaRepository<TradeSet,Long> {
                         tradeSetId,
                         userId,
                         nickname,
+                        profileImageUrl,
                         matchScore,
                         createdAt
                     FROM scored_matches
@@ -183,6 +187,7 @@ public interface TradeSetRepository extends JpaRepository<TradeSet,Long> {
                    tradeSet.group.name AS groupName,
                    tradeSet.user.id AS userId,
                    tradeSet.user.nickname AS nickname,
+                   tradeSet.user.profileImageUrl AS profileImageUrl,
                    tradeSet.createdAt AS createdAt
             FROM TradeSet tradeSet
             WHERE tradeSet.status = :tradeSetStatus
