@@ -197,10 +197,13 @@ public class ChatRoomQueryService {
                 proposal.getStatus()
                         == TradeProposalStatus.COMPLETED;
 
+        boolean isReceiver = proposal.isReceiver(userId);
+
         return new ChatRoomHeaderResponse(
                 chatRoom.getId(),
                 partner.getNickname(),
                 completed,
+                isReceiver,
                 representHaveCard,
                 representWantCard,
                 haveCards.size(),

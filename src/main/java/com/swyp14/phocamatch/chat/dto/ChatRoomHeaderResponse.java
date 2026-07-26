@@ -9,6 +9,8 @@ public record ChatRoomHeaderResponse(
         @JsonProperty("isCompleted")
         boolean completed,
 
+        boolean isReceiver,
+
         ChatRepresentativeCardResponse representHaveCardInfo,
         ChatRepresentativeCardResponse representWantCardInfo,
 
