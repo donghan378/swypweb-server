@@ -133,6 +133,7 @@ public class TradeSetMatchService {
                                         candidate.getTradeSetId(),
                                         candidate.getUserId(),
                                         candidate.getNickname(),
+                                        candidate.getProfileImageUrl(),
                                         candidate.getMatchScore(),
                                         matchedHaveCardMap
                                                 .getOrDefault(
