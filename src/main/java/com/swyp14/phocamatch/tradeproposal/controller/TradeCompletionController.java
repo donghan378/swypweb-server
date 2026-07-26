@@ -8,10 +8,12 @@ import com.swyp14.phocamatch.chat.exception.ChatRoomAccessDeniedException;
 import com.swyp14.phocamatch.global.error.ErrorResponse;
 import com.swyp14.phocamatch.global.response.ApiResponse;
 import com.swyp14.phocamatch.tradeproposal.exception.AlreadyCompletedTradeException;
+import com.swyp14.phocamatch.tradeproposal.exception.InvalidTradeCompletionCardException;
 import com.swyp14.phocamatch.tradeproposal.service.TradeCompletionService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -93,6 +95,12 @@ public class TradeCompletionController {
                     .status(HttpStatus.FORBIDDEN)
                     .body(
                             ErrorResponse.of("AUTH_007", "교환은 제안받은 사용자만 완료할 수 있습니다.")
+                    );
+        }catch(InvalidTradeCompletionCardException e) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(
+                            ErrorResponse.of("VALIDATION_007", e.getMessage())
                     );
         }
     }

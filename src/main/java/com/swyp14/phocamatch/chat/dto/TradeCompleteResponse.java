@@ -3,6 +3,6 @@ package com.swyp14.phocamatch.chat.dto;
 public record TradeCompleteResponse(
         Long chatId,
         boolean isCompleted,
-        boolean deletedTradedCards
+        boolean deletedSelectedCards
 ) {
 }
