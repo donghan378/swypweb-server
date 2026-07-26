@@ -50,11 +50,8 @@ public class AuthService {
 
         try{
             userRepository.saveAndFlush(user);
-        }catch (DuplicateNicknameException exception){
-            throw new IllegalArgumentException(
-                    "이미 사용 중인 닉네임입니다.",
-                    exception
-            );
+        }catch (DataIntegrityViolationException exception){
+            throw new DuplicateNicknameException();
         }
 
         String accessToken =
