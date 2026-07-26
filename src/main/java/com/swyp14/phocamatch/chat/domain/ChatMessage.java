@@ -95,4 +95,20 @@ public class ChatMessage {
 
         return message;
     }
+
+    public static ChatMessage createSystem(
+            ChatRoom chatRoom,
+            User actor,
+            String content
+    ) {
+        ChatMessage message = new ChatMessage();
+
+        message.chatRoom = chatRoom;
+        message.sender = actor;
+        message.messageType = MessageType.SYSTEM;
+        message.content = content;
+        message.imageUrl = null;
+
+        return message;
+    }
 }

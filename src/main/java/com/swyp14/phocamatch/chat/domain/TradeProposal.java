@@ -83,4 +83,21 @@ public class TradeProposal {
 
         return proposal;
     }
+
+    public void complete() {
+        this.status = TradeProposalStatus.COMPLETED;
+        this.completedAt = LocalDateTime.now();
+    }
+
+    public boolean isCompleted(){
+        return this.status == TradeProposalStatus.COMPLETED;
+    }
+
+    public boolean isCancelled(){
+        return this.status == TradeProposalStatus.CANCELLED;
+    }
+
+    public boolean isReceiver(Long userId){
+        return this.receiver.getId().equals(userId);
+    }
 }
