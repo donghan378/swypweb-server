@@ -5,6 +5,7 @@ import com.swyp14.phocamatch.chat.dto.ChatMessageResponse;
 import com.swyp14.phocamatch.chat.dto.TradeCompleteRequest;
 import com.swyp14.phocamatch.chat.dto.TradeCompleteResponse;
 import com.swyp14.phocamatch.chat.exception.ChatRoomAccessDeniedException;
+import com.swyp14.phocamatch.chat.exception.ChatRoomNotFoundException;
 import com.swyp14.phocamatch.global.error.ErrorResponse;
 import com.swyp14.phocamatch.global.response.ApiResponse;
 import com.swyp14.phocamatch.tradeproposal.exception.AlreadyCompletedTradeException;
@@ -101,6 +102,12 @@ public class TradeCompletionController {
                     .status(HttpStatus.BAD_REQUEST)
                     .body(
                             ErrorResponse.of("VALIDATION_007", e.getMessage())
+                    );
+        }catch(ChatRoomNotFoundException e){
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(
+                            ErrorResponse.of("RESOURCE_001", e.getMessage())
                     );
         }
     }
