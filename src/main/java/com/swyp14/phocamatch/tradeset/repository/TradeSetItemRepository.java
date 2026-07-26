@@ -181,4 +181,22 @@ public interface TradeSetItemRepository extends JpaRepository<TradeSetItem,Long>
             @Param("tradeSetId") Long tradeSetId,
             @Param("cardIds") List<Long> cardIds
     );
+
+    @Query("""
+            SELECT item
+            FROM TradeSetItem item
+            WHERE item.tradeSet.id = :tradeSetId
+              AND item.tradeType = :tradeType
+              AND item.card.id IN :cardIds
+            """)
+    List<TradeSetItem> findSelectedItems(
+            @Param("tradeSetId")
+            Long tradeSetId,
+
+            @Param("tradeType")
+            TradeType tradeType,
+
+            @Param("cardIds")
+            List<Long> cardIds
+    );
 }
