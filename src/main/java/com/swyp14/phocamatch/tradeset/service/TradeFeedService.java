@@ -107,6 +107,7 @@ public class TradeFeedService {
                                     set.getGroupName(),
                                     set.getUserId(),
                                     set.getNickname(),
+                                    set.getProfileImageUrl(),
                                     List.copyOf(
                                             images.haveImages()
                                     ),

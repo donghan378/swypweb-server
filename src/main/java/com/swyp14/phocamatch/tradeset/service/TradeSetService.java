@@ -427,6 +427,9 @@ public class TradeSetService {
                 tradeSet.getId(),
                 tradeSet.getGroup().getId(),
                 tradeSet.getGroup().getName(),
+                tradeSet.getUser().getId(),
+                tradeSet.getUser().getNickname(),
+                tradeSet.getUser().getProfileImageUrl(),
                 tradeSet.getCreatedAt(),
                 haveCards,
                 wantCards

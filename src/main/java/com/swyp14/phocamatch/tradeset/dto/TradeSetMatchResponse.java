@@ -6,6 +6,7 @@ public record TradeSetMatchResponse(
         Long tradeSetId,
         Long userId,
         String nickname,
+        String profileImageUrl,
         long matchScore,
         List<MatchedPhotoCardResponse> matchedHaveCards,
         List<MatchedPhotoCardResponse> matchedWantCards
