@@ -26,4 +26,15 @@ public interface TradeProposalItemRepository extends JpaRepository<TradeProposal
     List<TradeProposalCardProjection> findCardsByProposalId(
             @Param("proposalId") Long proposalId
     );
+
+    @Query("""
+            SELECT item
+            FROM TradeProposalItem item
+            JOIN FETCH item.card card
+            WHERE item.tradeProposal.id = :proposalId
+            ORDER BY item.id ASC
+            """)
+    List<TradeProposalItem> findAllByProposalId(
+            @Param("proposalId") Long proposalId
+    );
 }

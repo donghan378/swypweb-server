@@ -7,6 +7,7 @@ import com.swyp14.phocamatch.tradeset.dto.TradeSetCardQueryResult;
 import com.swyp14.phocamatch.tradeset.dto.TradeSetRepresentativeQueryResult;
 import com.swyp14.phocamatch.tradeset.dto.TradeSetTypeCountQueryResult;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -150,5 +151,34 @@ public interface TradeSetItemRepository extends JpaRepository<TradeSetItem,Long>
     findFeedCardsByTradeSetIds(
             @Param("tradeSetIds")
             List<Long> tradeSetIds
+    );
+
+    @Modifying(clearAutomatically = true)
+    @Query("""
+            DELETE FROM TradeSetItem item
+            WHERE item.tradeSet.id = :tradeSetId
+              AND item.tradeType = :tradeType
+              AND item.card.id IN :cardIds
+            """)
+    int deleteTradedCards(
+            @Param("tradeSetId") Long tradeSetId,
+            @Param("tradeType") TradeType tradeType,
+            @Param("cardIds") List<Long> cardIds
+    );
+
+    long countByTradeSet_IdAndTradeType(
+            Long tradeSetId,
+            TradeType tradeType
+    );
+
+    @Query("""
+            SELECT item
+            FROM TradeSetItem item
+            WHERE item.tradeSet.id = :tradeSetId
+              AND item.card.id IN :cardIds
+            """)
+    List<TradeSetItem> findTradedItems(
+            @Param("tradeSetId") Long tradeSetId,
+            @Param("cardIds") List<Long> cardIds
     );
 }
