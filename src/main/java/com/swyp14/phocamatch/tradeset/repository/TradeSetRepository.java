@@ -186,6 +186,7 @@ public interface TradeSetRepository extends JpaRepository<TradeSet,Long> {
                    tradeSet.group.name AS groupName,
                    tradeSet.user.id AS userId,
                    tradeSet.user.nickname AS nickname,
+                   tradeSet.user.profileImageUrl AS profileImageUrl,
                    tradeSet.createdAt AS createdAt
             FROM TradeSet tradeSet
             WHERE tradeSet.status = :tradeSetStatus
