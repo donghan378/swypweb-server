@@ -65,12 +65,14 @@ public class IdolGroupController {
     }
 
     private Long parseUserId(Jwt jwt) {
+
+        if(jwt == null) {
+            return null; // 비로그인 요청 -> userId 없음
+        }
+
         try {
             return Long.valueOf(jwt.getSubject());
-        } catch (
-                NullPointerException
-                | NumberFormatException exception
-        ) {
+        } catch (NumberFormatException exception) {
             throw new IllegalArgumentException(
                     "Access Token의 사용자 ID가 올바르지 않습니다."
             );
