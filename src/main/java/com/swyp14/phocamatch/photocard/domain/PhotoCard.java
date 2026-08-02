@@ -79,6 +79,9 @@ public class PhotoCard {
     )
     private String imageUrl;
 
+    @Column(name = "variant_order", nullable = false)
+    private Integer variantOrder;
+
     @Column(
             name = "created_at",
             nullable = false,
