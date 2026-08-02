@@ -30,9 +30,12 @@ public interface PhotoCardRepository extends JpaRepository<PhotoCard, Long> {
                 pc.id,
                 pc.name,
                 pc.member.name,
-                pc.imageUrl
+                pc.imageUrl,
+                pc.variantOrder,
+                pc.member.displayOrder
             ORDER BY
-                pc.member.id ASC,
+                pc.variantOrder ASC,
+                pc.member.displayOrder ASC,
                 pc.id ASC
             """)
     List<PhotoCardQueryResult> findPhotoCardsByVersionId(

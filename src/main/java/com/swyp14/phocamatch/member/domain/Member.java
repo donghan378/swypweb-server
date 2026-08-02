@@ -46,6 +46,9 @@ public class Member {
     )
     private String name;
 
+    @Column(name = "display_order", nullable = false)
+    private Integer displayOrder;
+
     @Column(
             name = "created_at",
             nullable = false,
