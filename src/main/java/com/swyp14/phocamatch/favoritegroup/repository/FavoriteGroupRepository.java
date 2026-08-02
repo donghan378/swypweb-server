@@ -47,17 +47,6 @@ public interface FavoriteGroupRepository extends JpaRepository<FavoriteGroup, Lo
             """)
     List<Long> findFavoriteGroupIds(
             @Param("userId") Long userId,
-            @Param("groupIds") List<Long> groupIds
-    );
-
-    @Query("""
-            SELECT fg.group.id
-            FROM FavoriteGroup fg
-            WHERE fg.user.id = :userId
-              AND fg.group.id IN :groupIds
-            """)
-    List<Long> findFavoriteGroupIds(
-            @Param("userId") Long userId,
             @Param("groupIds")
             Collection<Long> groupIds
     );
