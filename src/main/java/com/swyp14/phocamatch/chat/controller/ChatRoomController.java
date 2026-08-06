@@ -207,4 +207,49 @@ public class ChatRoomController {
                     );
         }
     }
+
+
+    @DeleteMapping("/{chatId}")
+    public ResponseEntity<?> leaveChatRoom(
+            @AuthenticationPrincipal Jwt jwt,
+
+            @PathVariable
+            @Positive(message = "chatId는 양수여야 합니다.")
+            Long chatId
+
+    ) {
+        try{
+            Long userId =
+                    Long.valueOf(jwt.getSubject());
+            ChatRoomDeleteResponse response = chatRoomService.leaveChatRoom(chatId, userId);
+
+            return ResponseEntity
+                    .status(HttpStatus.OK)
+                    .body(
+                            ApiResponse.success(
+                                    200,
+                                    "채팅방 삭제 완료",
+                                    response
+                            )
+                    );
+        }catch(ChatRoomNotFoundException e){
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(
+                            ErrorResponse.of("RESOURCE_001",e.getMessage())
+                    );
+        }catch(ChatRoomAccessDeniedException e){
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .body(
+                            ErrorResponse.of("AUTH_007",e.getMessage())
+                    );
+        }catch(ChatRoomAlreadyLeftException e){
+            return ResponseEntity
+                    .status(HttpStatus.CONFLICT)
+                    .body(
+                            ErrorResponse.of("CONFLICT_001",e.getMessage())
+                    );
+        }
+    }
 }
