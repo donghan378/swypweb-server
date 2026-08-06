@@ -90,7 +90,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
 
         configuration.setAllowedOrigins(
-                List.of("http://localhost:3000","https://swypweb-client.vercel.app")
+                List.of("http://localhost:3000","https://www.phocamatch.shop")
         );
 
         configuration.setAllowedMethods(

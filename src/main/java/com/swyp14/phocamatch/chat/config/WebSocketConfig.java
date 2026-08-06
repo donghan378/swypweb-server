@@ -23,7 +23,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     ) {
         registry.addEndpoint("/ws")
                 .setAllowedOriginPatterns(
-                        "https://swypweb-client.vercel.app"
+                        "https://www.phocamatch.shop"
                 );
     }
 
