@@ -43,4 +43,6 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
             @Param("userId") Long userId,
             @Param("lastReadMessageId") Long lastReadMessageId
     );
+
+    void deleteAllByChatRoom_ChatRoomId(Long chatRoomId);
 }
