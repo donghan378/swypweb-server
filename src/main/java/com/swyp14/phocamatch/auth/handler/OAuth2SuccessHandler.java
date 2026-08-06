@@ -127,7 +127,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         String redirectUrl =
                 UriComponentsBuilder
                         .fromUriString(
-                                "https://swypweb-client.vercel.app"
+                                "https://www.phocamatch.shop"
                                         + "/login/callback"
                         )
                         .queryParam(

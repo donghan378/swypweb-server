@@ -46,8 +46,8 @@ app:
     signup-token-expiration-seconds: 600
 
   frontend:
-    login-success-url: https://swypweb-client.vercel.app/oauth/callback
-    login-failure-url: https://swypweb-client.vercel.app/login
+    login-success-url: https://www.phocamatch.shop/oauth/callback
+    login-failure-url: https://www.phocamatch.shop/login
     # login-success-url-local: http://localhost:3000/oauth/callback
     # login-failure-url-local: http://localhost:3000/login
 
