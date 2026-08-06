@@ -280,7 +280,7 @@ public class ChatRoomService {
                 .orElseThrow(() -> new ChatRoomNotFoundException());
 
         ChatRoomMember member = chatRoomMemberRepository
-                .findByChatRoom_ChatRoomIdAndUserId(chatRoom.getId(), userId)
+                .findByChatRoomIdAndUserId(chatRoom.getId(), userId)
                 .orElseThrow(() -> new ChatRoomAccessDeniedException());
 
         if (member.isDeleted()) {
@@ -292,14 +292,14 @@ public class ChatRoomService {
 
         // 2. 채팅방의 전체 멤버가 모두 나갔는지 확인
         List<ChatRoomMember> allMembers = chatRoomMemberRepository
-                .findAllByChatRoom_ChatRoomId(chatRoom.getId());
+                .findAllByChatRoomId(chatRoom.getId());
 
         boolean allMembersLeft = allMembers.stream().allMatch(ChatRoomMember::isDeleted);
 
         // 3. 전원 나간 경우 -> 실제 데이터 삭제 (메시지 -> 멤버 -> 방 순서, FK 제약 주의)
         if (allMembersLeft) {
-            chatMessageRepository.deleteAllByChatRoom_ChatRoomId(chatRoom.getId());
-            chatRoomMemberRepository.deleteAllByChatRoom_ChatRoomId(chatRoom.getId());
+            chatMessageRepository.deleteAllByChatRoomId(chatRoom.getId());
+            chatRoomMemberRepository.deleteAllByChatRoomId(chatRoom.getId());
             chatRoomRepository.delete(chatRoom);
         }
 

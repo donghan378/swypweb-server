@@ -123,16 +123,16 @@ public interface ChatRoomMemberRepository extends JpaRepository<ChatRoomMember, 
             Long userId
     );
 
-    Optional<ChatRoomMember> findByChatRoom_ChatRoomIdAndUserId(
+    Optional<ChatRoomMember> findByChatRoomIdAndUserId(
             Long chatRoomId,
             Long userId
     );
 
-    List<ChatRoomMember> findAllByChatRoom_ChatRoomId(
+    List<ChatRoomMember> findAllByChatRoomId(
             Long chatRoomId
     );
 
-    void deleteAllByChatRoom_ChatRoomId(
+    void deleteAllByChatRoomId(
             Long chatRoomId
     );
 
