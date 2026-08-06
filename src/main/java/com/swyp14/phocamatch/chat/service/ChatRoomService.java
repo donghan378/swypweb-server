@@ -3,13 +3,9 @@ package com.swyp14.phocamatch.chat.service;
 import com.swyp14.phocamatch.chat.domain.*;
 import com.swyp14.phocamatch.chat.dto.ChatRoomCreateRequest;
 import com.swyp14.phocamatch.chat.dto.ChatRoomCreateResponse;
-import com.swyp14.phocamatch.chat.exception.InvalidGiveCardsException;
-import com.swyp14.phocamatch.chat.exception.InvalidReceiveCardsException;
-import com.swyp14.phocamatch.chat.exception.SelfTradeProposalException;
-import com.swyp14.phocamatch.chat.repository.ChatRoomMemberRepository;
-import com.swyp14.phocamatch.chat.repository.ChatRoomRepository;
-import com.swyp14.phocamatch.chat.repository.TradeProposalItemRepository;
-import com.swyp14.phocamatch.chat.repository.TradeProposalRepository;
+import com.swyp14.phocamatch.chat.dto.ChatRoomDeleteResponse;
+import com.swyp14.phocamatch.chat.exception.*;
+import com.swyp14.phocamatch.chat.repository.*;
 import com.swyp14.phocamatch.photocard.domain.PhotoCard;
 import com.swyp14.phocamatch.photocard.repository.PhotoCardRepository;
 import com.swyp14.phocamatch.tradeset.domain.TradeSet;
@@ -25,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -37,6 +34,7 @@ public class ChatRoomService {
     private final TradeSetRepository tradeSetRepository;
     private final TradeSetItemRepository tradeSetItemRepository;
     private final PhotoCardRepository photoCardRepository;
+    private final ChatMessageRepository chatMessageRepository;
 
     private final TradeProposalRepository tradeProposalRepository;
     private final TradeProposalItemRepository tradeProposalItemRepository;
@@ -274,4 +272,38 @@ public class ChatRoomService {
             );
         }
     }
+
+    @Transactional
+    public ChatRoomDeleteResponse leaveChatRoom(Long chatRoomId, Long userId) {
+
+        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
+                .orElseThrow(() -> new ChatRoomNotFoundException());
+
+        ChatRoomMember member = chatRoomMemberRepository
+                .findByChatRoom_ChatRoomIdAndUserId(chatRoom.getId(), userId)
+                .orElseThrow(() -> new ChatRoomAccessDeniedException());
+
+        if (member.isDeleted()) {
+            throw new ChatRoomAlreadyLeftException();
+        }
+
+        // 1. 요청한 유저만 나가기(soft delete) 처리
+        member.leave(LocalDateTime.now());
+
+        // 2. 채팅방의 전체 멤버가 모두 나갔는지 확인
+        List<ChatRoomMember> allMembers = chatRoomMemberRepository
+                .findAllByChatRoom_ChatRoomId(chatRoom.getId());
+
+        boolean allMembersLeft = allMembers.stream().allMatch(ChatRoomMember::isDeleted);
+
+        // 3. 전원 나간 경우 -> 실제 데이터 삭제 (메시지 -> 멤버 -> 방 순서, FK 제약 주의)
+        if (allMembersLeft) {
+            chatMessageRepository.deleteAllByChatRoom_ChatRoomId(chatRoom.getId());
+            chatRoomMemberRepository.deleteAllByChatRoom_ChatRoomId(chatRoom.getId());
+            chatRoomRepository.delete(chatRoom);
+        }
+
+        return ChatRoomDeleteResponse.of(chatRoom.getId(), allMembersLeft);
+    }
+
 }

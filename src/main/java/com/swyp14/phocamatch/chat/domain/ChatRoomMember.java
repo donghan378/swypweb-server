@@ -6,6 +6,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(
         name = "chat_room_members",
@@ -44,6 +46,17 @@ public class ChatRoomMember {
 
     @Column(name = "last_read_message_id")
     private Long lastReadMessageId;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
+
+    public void leave(LocalDateTime now) {
+        this.deletedAt = now;
+    }
+
+    public boolean isDeleted() {
+        return this.deletedAt != null;
+    }
 
     public void updateLastReadMessageId(
             Long messageId
