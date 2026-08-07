@@ -25,7 +25,7 @@ public class RefreshTokenCookieProvider {
                 .httpOnly(true)
                 .secure(secureCookie)
                 .sameSite(sameSite)
-                .path("/api/auth")
+                .path("/api/v1/auth")
                 .maxAge(refreshTokenExpirationSeconds)
                 .build();
     }
@@ -35,7 +35,7 @@ public class RefreshTokenCookieProvider {
                 .httpOnly(true)
                 .secure(secureCookie)
                 .sameSite(sameSite)
-                .path("/api/auth")
+                .path("/api/v1/auth")
                 .maxAge(0)
                 .build();
     }

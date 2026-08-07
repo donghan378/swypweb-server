@@ -1,5 +1,6 @@
 package com.swyp14.phocamatch.user.service;
 
+import com.swyp14.phocamatch.auth.repository.RefreshTokenRepository;
 import com.swyp14.phocamatch.tradeset.domain.TradeSetStatus;
 import com.swyp14.phocamatch.tradeset.repository.TradeSetRepository;
 import com.swyp14.phocamatch.user.domain.User;
@@ -16,6 +17,7 @@ public class UserWithdrawalService {
 
     private final UserRepository userRepository;
     private final TradeSetRepository tradeSetRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     @Transactional
     public void withdraw(Long userId) {
@@ -32,6 +34,8 @@ public class UserWithdrawalService {
                 TradeSetStatus.ACTIVE,
                 TradeSetStatus.DELETED
         );
+
+        refreshTokenRepository.deleteAllByUserId(userId);
 
         user.withdraw();
         userRepository.save(user);

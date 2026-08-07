@@ -74,6 +74,7 @@ public interface ChatRoomMemberRepository extends JpaRepository<ChatRoomMember, 
                           )
 
                         WHERE my_member.user_id = :userId
+                            AND my_member.deleted_at IS NULL
                     )
 
                     SELECT
