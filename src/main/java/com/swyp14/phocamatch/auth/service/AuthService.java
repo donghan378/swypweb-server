@@ -1,6 +1,7 @@
 package com.swyp14.phocamatch.auth.service;
 
 import com.swyp14.phocamatch.auth.dto.TokenResponse;
+import com.swyp14.phocamatch.auth.token.RefreshTokenService;
 import com.swyp14.phocamatch.auth.token.TokenService;
 import com.swyp14.phocamatch.user.domain.User;
 import com.swyp14.phocamatch.user.exception.DuplicateNicknameException;
@@ -16,9 +17,10 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final TokenService tokenService;
+    private final RefreshTokenService refreshTokenService;
 
     @Transactional
-    public TokenResponse signup(
+    public SignupResult signup(
             String signupToken,
             String nickname
     ){
@@ -57,7 +59,14 @@ public class AuthService {
         String accessToken =
                 tokenService.createAccessToken(user);
 
-        return TokenResponse.bearer(accessToken);
+        String refreshToken =
+                refreshTokenService.issue(user.getId());
+
+        return new SignupResult(accessToken, refreshToken);
+    }
+
+    public record SignupResult(String accessToken, String refreshToken) {
+
     }
 
 }
