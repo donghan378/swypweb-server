@@ -1,5 +1,7 @@
 package com.swyp14.phocamatch.auth.handler;
 
+import com.swyp14.phocamatch.auth.token.RefreshTokenCookieProvider;
+import com.swyp14.phocamatch.auth.token.RefreshTokenService;
 import com.swyp14.phocamatch.auth.token.TokenService;
 import com.swyp14.phocamatch.user.domain.AuthProvider;
 import com.swyp14.phocamatch.user.domain.User;
@@ -11,6 +13,7 @@ import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.validator.internal.constraintvalidators.bv.EmailValidator;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -28,6 +31,8 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
     private final UserRepository userRepository;
     private final TokenService tokenService;
+    private final RefreshTokenService refreshTokenService;
+    private final RefreshTokenCookieProvider refreshTokenCookieProvider;
 
     @Value("${app.frontend.login-success-url}")
     private String frontendSuccessUrl;
@@ -81,6 +86,13 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
             String accessToken =
                     tokenService.createAccessToken(user);
+
+            String refreshToken = refreshTokenService.issue(user.getId());
+
+            response.addHeader(
+                    HttpHeaders.SET_COOKIE,
+                    refreshTokenCookieProvider.create(refreshToken).toString()
+            );
 
             redirectUrl = UriComponentsBuilder
                     .fromUriString(frontendSuccessUrl)

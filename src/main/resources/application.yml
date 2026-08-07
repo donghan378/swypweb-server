@@ -44,6 +44,11 @@ app:
     secret: ${JWT_SECRET}
     access-token-expiration-seconds: 3600
     signup-token-expiration-seconds: 600
+    refresh-token-expiration-seconds: 1209600  #14일
+
+  cookie:
+    secure: true
+    same-site: None
 
   frontend:
     login-success-url: https://www.phocamatch.shop/oauth/callback
