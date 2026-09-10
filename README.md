@@ -6,7 +6,7 @@
 ppt url : https://www.figma.com/deck/faSxWu7JjU4wzoNZ1h2xuv/%ED%8F%AC%EC%B9%B4%EB%A7%A4%EC%B9%98-%EB%8D%B0%EB%AA%A8%EB%8D%B0%EC%9D%B4?node-id=4-217&t=C131kPhREbz5NC8d-1
 
 
-
+시연 영상 url : https://drive.google.com/file/d/1CvOE8d0EHYP9qJBSOAiKL8X0mlcTx4Sy/view?usp=drive_link
 
 <img width="3880" height="2175" alt="image" src="https://github.com/user-attachments/assets/5342145f-7fd3-402e-84aa-5290388b9c23" />
 
